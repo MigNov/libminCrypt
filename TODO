@@ -1,0 +1,7 @@
+INTRODUCE OPTION TO DISABLE CRC FOR CHUNK AND ADD ONLY OVERALL CRC FOR THE FILE TO INCREASE SECURITY - TOUGH BRUTE FORCE ATTACK
+
+* Mon Tue 2011-11-29 Michal Novotny <mignov@gmail.com> - 0.0.3 update:
+
+- Fix compilation with -Wall
+- Add comments and split asymmetric and symmetric stuff into separate source files
+- Test with asymmetric approach disabled not to introduce regressions
