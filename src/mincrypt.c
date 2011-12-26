@@ -40,7 +40,7 @@ int _vector_size = 0;
 int _avector_size = -1;// used for asymmetric approach
 int type_approach = APPROACH_SYMMETRIC;
 int out_type = ENCODING_TYPE_BINARY;
-int simple_mode = 0;
+int _simple_mode = 0;
 
 /*
 	Private function name:	get_nearest_power_of_two
@@ -582,7 +582,7 @@ DLLEXPORT int mincrypt_set_encoding_type(int type)
 	if ((type < ENCODING_TYPE_BASE) || (type > ENCODING_TYPE_BASE64))
 		return 1;
 
-	if (simple_mode && (type != ENCODING_TYPE_BINARY))
+	if (_simple_mode && (type != ENCODING_TYPE_BINARY))
 		return 2;
 
 	out_type = type;
@@ -601,7 +601,7 @@ DLLEXPORT int mincrypt_set_simple_mode(int enable)
 	if ((out_type != ENCODING_TYPE_BINARY) && (enable != 0))
 		return 1;
 
-	simple_mode = enable;
+	_simple_mode = enable;
 	return 0;
 }
 
@@ -985,7 +985,7 @@ DLLEXPORT unsigned char *mincrypt_decrypt(unsigned char *block, size_t size, int
 	}
 
 	DPRINTF("%s: Got chunk size of %d bytes\n", __FUNCTION__, csize);
-	if (!simple_mode) {
+	if (!_simple_mode) {
 		new_crc = crc32_block(out, orig_size, 0xFFFFFFFF);
 		DPRINTF("%s: Checking CRC value for %d byte-block (0x%08"PRIx32" [expected] %c= 0x%08"PRIx32" [found])\n",
 				__FUNCTION__, orig_size, old_crc, old_crc == new_crc ? '=' : '!', new_crc);
@@ -1134,14 +1134,14 @@ DLLEXPORT int mincrypt_decrypt_file(char *filename1, char *filename2, char *salt
 		outbuf = mincrypt_decrypt(buf, rct, id++, &rct, &rsize);
 		rc = (int)rct;
 		already_read += rsize + 17 + strlen(SIGNATURE);
-		if (simple_mode && (to_read != rsize + 17 + strlen(SIGNATURE))) {
+		if (_simple_mode && (to_read != rsize + 17 + strlen(SIGNATURE))) {
 			to_read = rsize + 17 + strlen(SIGNATURE);
 			DPRINTF("%s: Current position is 0x%"PRIx64"\n", __FUNCTION__, already_read);
 			if (lseek(fd, already_read, SEEK_SET) != already_read)
 				DPRINTF("Warning: Seek error!\n");
 		}
 		else
-		if (!simple_mode) {
+		if (!_simple_mode) {
 			if (lseek(fd, already_read, SEEK_SET) != already_read)
 				DPRINTF("Warning: Seek error!\n");
 		}

@@ -4,13 +4,9 @@ libmincrypt_la_CFLAGS = -Wall -fPIC
 libmincrypt_la_SOURCES = mincrypt.c crc32.c base64.c byteops.c asymmetric.c mincrypt.h
 libmincrypt_la_LIBS = -lm
 
-all:
-	$(CC) -Wall -fPIC -DHAVE_CONFIG_H -shared -DCOMPILE_DL_MINCRYPT=1 $(libmincrypt_la_LIBS) -o libmincrypt.so $(libmincrypt_la_SOURCES)
-	cp -af libmincrypt.so ../examples
-	cp -af mincrypt.h ../examples
+# Standalone binary form
+bin_PROGRAMS = mincrypt
+mincrypt_CFLAGS = -Wall -fPIC
+mincrypt_SOURCES = mincrypt-tui.c mincrypt.c crc32.c base64.c byteops.c asymmetric.c mincrypt.h
 
-install-exec-local:
-	cp -af libmincrypt.so $(DESTDIR)$(libdir)/libmincrypt.so
-
-uninstall-local:
-	rm -f $(DESTDIR)$(libdir)/libmincrypt.so
+EXTRA_DIST = mincrypt.h

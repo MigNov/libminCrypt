@@ -1,4 +1,4 @@
- libMinCrypt application README
+ libminCrypt application README
  ===============================
 
 This library is the implementation of minCrypt algorithm as based
@@ -20,7 +20,7 @@ for math library (libm) and it's distributed under the LGPLv2+ licence.
 Terminology
 -----------
 
-This library should be referred to as libMinCrypt.
+This library should be referred to as libminCrypt.
 
 Pre-requisite software
 ----------------------

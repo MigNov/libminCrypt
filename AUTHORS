@@ -1,7 +1,7 @@
- libMinCrypt authors
+ libminCrypt authors
  ====================
 
-libMinCrypt is based on design document draft 0.0.1 of the minCrypt algorithm
+libminCrypt is based on design document draft 0.0.1 of the minCrypt algorithm
 implementation however the current version of 0.0.4 implementing both symmetric
 and asymmetric encryption approach based on the password and salt values.
 

@@ -1,9 +1,12 @@
 ACLOCAL_AMFLAGS=-I m4
 SOURCEDIR=`rpm --eval '%{_sourcedir}'`
 
-SUBDIRS = src examples
+SUBDIRS = src tests include
 
 EXTRA_DIST = LICENSE
+
+check:	test
+tests:	test
 
 test:
 	cd tests && ./runtests.sh
