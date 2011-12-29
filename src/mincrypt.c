@@ -441,7 +441,7 @@ DLLEXPORT int mincrypt_generate_keys(int bits, char *salt, char *password, char 
 			bit = rand() % 2;
 			p = uPassword - iter2;
 			q = uSalt / (iter2 + iter);
-			if (get_random_values( prime_sum % time(NULL), bits, &p, &q, &e, &d, &n, bit) < 0) {
+			if (get_random_values( (prime_sum - rand()) % time(NULL), bits, &p, &q, &e, &d, &n, bit) < 0) {
 				DPRINTF("%s: Cannot get the random values based on the input data\n", __FUNCTION__);
 				//goto cleanup;
 				continue;
