@@ -35,6 +35,7 @@ int decrypt	= 0;
 int simple_mode	= 0;
 
 int parseArgs(int argc, char * const argv[]) {
+	long ver;
 	int option_index = 0, c;
 	struct option long_options[] = {
 		{"input-file", 1, 0, 'i'},
@@ -48,10 +49,11 @@ int parseArgs(int argc, char * const argv[]) {
 		{"key-size", 1, 0, 'k'},
 		{"key-file", 1, 0, 'f'},
 		{"dump-vectors", 1, 0, 'u'},
+		{"version", 0, 0, 'e'},
 		{0, 0, 0, 0}
 	};
 
-	char *optstring = "i:o:p:s:v:k:u:d";
+	char *optstring = "i:o:p:s:v:k:u:de";
 
 	while (1) {
 		c = getopt_long(argc, argv, optstring,
@@ -93,6 +95,11 @@ int parseArgs(int argc, char * const argv[]) {
 			case 'u':
 				dump_file = optarg;
 				break;
+			case 'e':
+				ver = mincrypt_get_version();
+				printf("Using library version %d.%d.%d\n", (long)((ver >> 16) & 0xFF),
+							(long)((ver >> 8 & 0xFF)), (long)(ver & 0xFF));
+				break;
 			case 'v':
 				vector_mult = atoi(optarg);
 				if (vector_mult < 32)
@@ -111,7 +118,7 @@ int main(int argc, char *argv[])
 	if (parseArgs(argc, argv)) {
 		printf("Syntax: %s --input-file=infile --output-file=outfile [--decrypt] [--password=pwd] [--salt=salt] "
 			"[--vector-multiplier=number] [--type=base64|binary] [--simple-mode] [--key-size <keysize> "
-			"--key-file <keyfile-prefix>] [--dump-vectors <dump-file>]\n",
+			"--key-file <keyfile-prefix>] [--dump-vectors <dump-file>] [--version]\n",
 				argv[0]);
 		return 1;
 	}
