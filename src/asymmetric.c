@@ -24,6 +24,42 @@ do { fprintf(stderr, "[mincrypt/asymmetric  ] " fmt , ##args); } while (0)
 #define DPRINTF(fmt, args...) do {} while(0)
 #endif
 
+uint64_t gcd(uint64_t u, uint64_t v)
+{
+	int shift;
+	if (u == 0 || v == 0)
+		return u | v;
+ 
+	for (shift = 0; ((u | v) & 1) == 0; ++shift) {
+		u >>= 1;
+		v >>= 1;
+	}
+ 
+	while ((u & 1) == 0)
+		u >>= 1;
+ 
+	do {
+		while ((v & 1) == 0)
+			v >>= 1;
+ 
+		if (u < v) {
+			v -= u;
+		} else {
+			uint64_t diff = u - v;
+			u = v;
+			v = diff;
+		}
+		v >>= 1;
+	} while (v != 0);
+ 
+	return u << shift;
+}
+
+int find_coprime_for(uint64_t e, uint64_t en)
+{
+	return gcd(e, en) == 1;
+}
+
 uint64_t get_decryption_value(uint64_t p, uint64_t q, uint64_t e, uint64_t *on)
 {
 	uint64_t n, eu, d, i;
@@ -36,7 +72,7 @@ uint64_t get_decryption_value(uint64_t p, uint64_t q, uint64_t e, uint64_t *on)
 
 	d = 0;
 	if (e > 0) {
-		for (i = 0; i < (int)n; i++) {
+		for (i = 0; i < (int)eu; i++) {
 			if ((i * (int)e) % eu == 1.) {
 				d = i;
 				break;
@@ -48,6 +84,24 @@ uint64_t get_decryption_value(uint64_t p, uint64_t q, uint64_t e, uint64_t *on)
 		*on = n;
 
 	return d;
+}
+
+uint64_t get_encryption_value(uint64_t n, uint64_t eu, uint64_t xseed)
+{
+	uint64_t e;
+
+	srand( xseed );
+
+	e = find_nearest_prime_number( rand() % n, GET_NEAREST_BIGGER );
+	while (!find_coprime_for(e, eu)) {
+		e = find_nearest_prime_number( rand() % n, GET_NEAREST_BIGGER );
+		if (e == (uint64_t)-1) {
+			DPRINTF("%s: Invalid prime number for e\n", __FUNCTION__);
+			return e;
+		}
+	}
+
+	return e;
 }
 
 int get_random_values(uint64_t seed, int size, uint64_t *p, uint64_t *q, uint64_t *oe, uint64_t *od, uint64_t *on, int flags)
@@ -91,14 +145,9 @@ int get_random_values(uint64_t seed, int size, uint64_t *p, uint64_t *q, uint64_
 	xseed = (seed == 0) ? time(NULL) : seed % time(NULL);
 
 	n = xp * xq;
-	srand( xseed );
-	e = find_nearest_prime_number( rand() % n, flags );
-	if (e == (uint64_t)-1) {
-		DPRINTF("%s: Invalid prime number for e\n", __FUNCTION__);
-		return -EINVAL;
-	}
 
-	d = get_decryption_value(xp, xq, e, &n);
+	e = get_encryption_value(n, (xp - 1) * (xq - 1), xseed);
+	d = get_decryption_value(xp, xq, e, NULL);
 
 	DPRINTF("%s: int seed = %d, int d = %d, int e = %d\n", __FUNCTION__, (int)xseed, (int)d, (int)e);
 

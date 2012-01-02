@@ -5,12 +5,6 @@ SUBDIRS = src tests include
 
 EXTRA_DIST = LICENSE
 
-check:	test
-tests:	test
-
-test:
-	cd tests && ./runtests.sh
-
 rpm:   dist-xz
 	$(CP) $(PACKAGE_NAME)-$(VERSION).tar.xz $(SOURCEDIR)/$(PACKAGE_NAME)-$(VERSION).tar.xz
 	$(RPMBUILD) -bb $(PACKAGE_NAME).spec

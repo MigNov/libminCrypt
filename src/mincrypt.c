@@ -154,8 +154,10 @@ int read_key_data(int fd, int bits, int isPrivate)
 	uint32_t val;
 	uint64_t val64;
 
+#ifndef USE_64BIT_NUMBERS
 	if (bits != 32)
 		return -EINVAL;
+#endif
 
 	if ((_iva == NULL) || (_ivn == NULL))
 		return -EIO;
