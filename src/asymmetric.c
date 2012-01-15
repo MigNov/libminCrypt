@@ -24,40 +24,25 @@ do { fprintf(stderr, "[mincrypt/asymmetric  ] " fmt , ##args); } while (0)
 #define DPRINTF(fmt, args...) do {} while(0)
 #endif
 
-uint64_t gcd(uint64_t u, uint64_t v)
+uint64_t gcd(uint64_t p, uint64_t q)
 {
-	int shift;
-	if (u == 0 || v == 0)
-		return u | v;
- 
-	for (shift = 0; ((u | v) & 1) == 0; ++shift) {
-		u >>= 1;
-		v >>= 1;
+	uint64_t i, ret = (uint64_t)-1;
+
+	for (i = 1; i < p; i++) {
+		if ((p % i == 0) && (q % i == 0)) {
+			ret = i;
+			DPRINTF("%s: Both %"PRIi64" and %"PRIi64" can be divided by %"PRIi64"\n",
+				__FUNCTION__, p, q, i);
+		}
 	}
  
-	while ((u & 1) == 0)
-		u >>= 1;
- 
-	do {
-		while ((v & 1) == 0)
-			v >>= 1;
- 
-		if (u < v) {
-			v -= u;
-		} else {
-			uint64_t diff = u - v;
-			u = v;
-			v = diff;
-		}
-		v >>= 1;
-	} while (v != 0);
- 
-	return u << shift;
+	DPRINTF("%s: Returning 0x%"PRIx64" as gcd(0x%"PRIx64", 0x%"PRIx64")\n", __FUNCTION__, ret, p, q);
+	return ret;
 }
 
-int find_coprime_for(uint64_t e, uint64_t en)
+int is_coprime(uint64_t p, uint64_t q)
 {
-	return gcd(e, en) == 1;
+	return gcd(p, q) == 1;
 }
 
 uint64_t get_decryption_value(uint64_t p, uint64_t q, uint64_t e, uint64_t *on)
@@ -91,9 +76,8 @@ uint64_t get_encryption_value(uint64_t n, uint64_t eu, uint64_t xseed)
 	uint64_t e;
 
 	srand( xseed );
-
 	e = find_nearest_prime_number( rand() % n, GET_NEAREST_BIGGER );
-	while (!find_coprime_for(e, eu)) {
+	while (!is_coprime(e, eu)) {
 		e = find_nearest_prime_number( rand() % n, GET_NEAREST_BIGGER );
 		if (e == (uint64_t)-1) {
 			DPRINTF("%s: Invalid prime number for e\n", __FUNCTION__);
@@ -101,6 +85,7 @@ uint64_t get_encryption_value(uint64_t n, uint64_t eu, uint64_t xseed)
 		}
 	}
 
+	DPRINTF("%s: Encryption value found 0x%"PRIx64"\n", __FUNCTION__, e);
 	return e;
 }
 
