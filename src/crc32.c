@@ -1,7 +1,7 @@
 /*
  *  crc32.c: 32-bit cyclic-redundancy-check (CRC-32) calculation implementation
  *
- *  Copyright (c) 2010-2011, Michal Novotny <mignov@gmail.com>
+ *  Copyright (c) 2010-2012, Michal Novotny <mignov@gmail.com>
  *  All rights reserved.
  *
  *  See COPYING for the license of this software

@@ -1,7 +1,7 @@
 /*
  *  mincrypt.h: Minimalistic encryption system headers
  *
- *  Copyright (c) 2010-2011, Michal Novotny <mignov@gmail.com>
+ *  Copyright (c) 2010-2012, Michal Novotny <mignov@gmail.com>
  *  All rights reserved.
  *
  *  See COPYING for the license of this software

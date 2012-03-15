@@ -1,4 +1,4 @@
-AC_INIT([libmincrypt], [0.0.4], [mignov@gmail.com])
+AC_INIT([libmincrypt], [0.0.5], [mignov@gmail.com])
 LT_INIT([shared])
 AC_ENABLE_SHARED
 AC_CONFIG_MACRO_DIR([m4])

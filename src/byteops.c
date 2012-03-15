@@ -1,7 +1,7 @@
 /*
  *  byteops.c: byte operations used by mincrypt system's asymmetric approach
  *
- *  Copyright (c) 2010-2011, Michal Novotny <mignov@gmail.com>
+ *  Copyright (c) 2010-2012, Michal Novotny <mignov@gmail.com>
  *  All rights reserved.
  *
  *  See COPYING for the license of this software

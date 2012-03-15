@@ -1,7 +1,7 @@
 /*
  *  mincrypt.c: Minimalistic encryption system core
  *
- *  Copyright (c) 2010-2011, Michal Novotny <mignov@gmail.com>
+ *  Copyright (c) 2010-2012, Michal Novotny <mignov@gmail.com>
  *  All rights reserved.
  *
  *  See COPYING for the license of this software
@@ -441,8 +441,9 @@ DLLEXPORT int mincrypt_generate_keys(int bits, char *salt, char *password, char 
 		while (len2 < (bits / 8)) {
 			iter2++;
 			bit = rand() % 2;
-			p = uPassword - iter2;
-			q = uSalt / (iter2 + iter);
+			srand( tmp + iter2 * len );
+			p = uPassword - iter2 * rand();
+			q = uSalt / (iter2 + iter) * rand();
 			if (get_random_values( (prime_sum - rand()) % time(NULL), bits, &p, &q, &e, &d, &n, bit) < 0) {
 				DPRINTF("%s: Cannot get the random values based on the input data\n", __FUNCTION__);
 				//goto cleanup;

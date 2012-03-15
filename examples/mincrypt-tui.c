@@ -1,7 +1,7 @@
 /*
- *  mincrypt-main.c: Minimalistic encryption system application
+ *  mincrypt-tui.c: Minimalistic encryption system application
  *
- *  Copyright (c) 2010-2011, Michal Novotny <mignov@gmail.com>
+ *  Copyright (c) 2010-2012, Michal Novotny <mignov@gmail.com>
  *  All rights reserved.
  *
  *  See COPYING for the license of this software
@@ -11,12 +11,12 @@
 #include "mincrypt.h"
 
 #ifndef DISABLE_DEBUG
-#define DEBUG_MINCRYPT_MAIN
+#define DEBUG_MINCRYPT_TUI
 #endif
 
-#ifdef DEBUG_MINCRYPT_MAIN
+#ifdef DEBUG_MINCRYPT_TUI
 #define DPRINTF(fmt, ...) \
-do { fprintf(stderr, "[mincrypt/main        ] " fmt , ## __VA_ARGS__); } while (0)
+do { fprintf(stderr, "[mincrypt/tui-example ] " fmt , ## __VA_ARGS__); } while (0)
 #else
 #define DPRINTF(fmt, ...) \
 do {} while(0)
