@@ -68,6 +68,14 @@ DLLEXPORT int get_nearest_power_of_two(int value, int *oBits)
 	return val;
 }
 
+/*
+	Private function name:	tokenize_by
+	Since version:		0.0.5
+	Description:		This private function can split string into tokens
+	Arguments:		@string [char]: input string to be tokenized
+				@by [char]: string to tokenize by
+	Returns:		tTokenizer structure
+*/
 tTokenizer tokenize_by(char *string, char *by)
 {
 	char *tmp = NULL;
@@ -95,11 +103,25 @@ tTokenizer tokenize_by(char *string, char *by)
 	return t;
 }
 
+/*
+	Private function name:	tokenize
+	Since version:		0.0.5
+	Description:		Private function to tokenize string by space
+	Arguments:		@string [char]: input string to be tokenized
+	Returns:		tTokenizer structure
+*/
 tTokenizer tokenize(char *string)
 {
 	return tokenize_by(string, " ");
 }
 
+/*
+	Private function name:	free_tokens
+	Since version:		0.0.5
+	Description:		Private function to free tokens in tokenizer
+	Arguments:		@t [tTokenizer]: tokenizer structure to be freed
+	Returns:		None
+*/
 void free_tokens(tTokenizer t)
 {
 	int i;
@@ -110,6 +132,15 @@ void free_tokens(tTokenizer t)
 	}
 }
 
+/*
+	Private function name:	write_header_footer
+	Since version:		0.0.5
+	Description:		Writes the header or footer for public or private key
+	Arguments:		@fd [int]: file descriptor to write to
+				@isFooter [int]: footer flag, 0 to header, 1 to footer
+				@private [int]: private flag, 0 for public key, 1 for private key
+	Returns:		None
+*/
 void write_header_footer(int fd, int isFooter, int private)
 {
 	char tmp[1024] = { 0 };
@@ -127,6 +158,15 @@ void write_header_footer(int fd, int isFooter, int private)
 	write(fd, tmp, strlen(tmp));
 }
 
+/*
+	Private function name:	write_data
+	Since version:		0.0.5
+	Description:		This function writes key data in hex format
+	Arguments:		@fd [int]: file descriptor to write to
+				@data [unsigned char]: unsigned data string to be encoded in hex
+				@num [int]: number of components (characters) in @data
+	Returns:		None
+*/
 void write_data(int fd, unsigned char *data, int num)
 {
 	int i;
@@ -145,6 +185,15 @@ void write_data(int fd, unsigned char *data, int num)
 	}
 }
 
+/*
+	Private function name:	read_key_data
+	Since version:		0.0.5
+	Description:		This function reads the key data from opened file
+	Arguments:		@fd [int]: opened file descriptor, file must be open for reading
+				@bits [int]: number of bits for further processing
+				@isPrivate [int]: private flag for further processing
+	Returns:		error code or 0 for success
+*/
 int read_key_data(int fd, int bits, int isPrivate)
 {
 	int i, in, c, num;
@@ -198,6 +247,13 @@ int read_key_data(int fd, int bits, int isPrivate)
 	return 0;
 }
 
+/*
+	Private function name:	get_version
+	Since version:		0.0.5
+	Description:		Function to convert version string into long format
+	Arguments:		@verstr [char]: human-readable version string
+	Returns:		version string encoded as long value
+*/
 long get_version(char *verstr)
 {
 	char a[2] = { 0 };
@@ -222,6 +278,17 @@ long get_version(char *verstr)
 	return ((major << 16) + (minor << 8) + (micro));
 }
 
+/*
+	Private function name:	read_header_footer
+	Since version:		0.0.5
+	Description:		Function reads the header or footer from key file
+	Arguments:		@fd [int]: file descriptor of open file
+				@isFooter [int]: identifier what part of key to expect
+				@isPrivate [out int]: output integer to identify whether key is private
+				@bits [out int]: output integer to identify number of bits used for the key
+	Returns:		error code or 0 for success
+
+*/
 int read_header_footer(int fd, int isFooter, int *isPrivate, int *bits)
 {
 	int c, bitlen;
@@ -570,7 +637,7 @@ DLLEXPORT void mincrypt_dump_vectors(char *dump_file)
 
 	close(fd);
 
-	DPRINTF("%s: All (%d) initialization vectors saved to %s\n", __FUNCTION__, num, dump_file);
+	DPRINTF("%s: All (%d) initialization vectors dumped to %s\n", __FUNCTION__, num, dump_file);
 }
 
 /*
@@ -660,7 +727,6 @@ DLLEXPORT void mincrypt_set_password(char *salt, char *password, int vector_mult
 					+ (uint32_t)pow( savedpass[(passSum - val) % strlen(savedpass) ], (passSum + i) / val)
 				 );
 
-		//DPRINTF("Got initialization vector %d: %08" PRIx32"\n", i, _iv[i]);
 		initialValue += _iv[i];
 	}
 	free(savedpass);
