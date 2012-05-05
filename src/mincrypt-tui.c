@@ -33,6 +33,7 @@ int vector_mult	= -1;
 int keysize	= 0;
 int decrypt	= 0;
 int simple_mode	= 0;
+int use_four_bs = 0;
 
 int parseArgs(int argc, char * const argv[]) {
 	long ver;
@@ -100,6 +101,13 @@ int parseArgs(int argc, char * const argv[]) {
 				printf("Using library version %d.%d.%d\n", (long)((ver >> 16) & 0xFF),
 							(long)((ver >> 8 & 0xFF)), (long)(ver & 0xFF));
 				break;
+			case '4':
+				use_four_bs = 1;
+				break;
+			case 'q':
+				if (!mincrypt_set_four_system_quartet(optarg))
+					printf("Warning: Cannot set four base system quartet to %s\n", optarg);
+				break;
 			case 'v':
 				vector_mult = atoi(optarg);
 				if (vector_mult < 32)
@@ -136,6 +144,19 @@ int main(int argc, char *argv[])
 		}
 		password = strdup(tmp);
 		free(tmp);
+	}
+
+	/* Use base 4 numbering system for password and salt encoding */
+	if (use_four_bs == 1) {
+		unsigned char *tmp1 = NULL;
+
+		tmp1 = mincrypt_convert_to_four_system((unsigned char *)salt, strlen(salt));
+		salt = strdup(tmp1);
+		free(tmp1);
+
+		tmp1 = mincrypt_convert_to_four_system((unsigned char *)password, strlen(password));
+		password = strdup(tmp1);
+		free(tmp1);
 	}
 
 	if (keysize > 0) {

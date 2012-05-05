@@ -20,6 +20,7 @@
 #define SIGNATURE			"MCF"
 #define DEFAULT_SALT_VAL		SIGNATURE
 #define DEFAULT_VECTOR_MULT		0x20
+#define DEFAULT_NEW_PASSWORD_LENGTH	8
 
 #define ENCODING_TYPE_BASE		0x10
 #define ENCODING_TYPE_BINARY		ENCODING_TYPE_BASE
@@ -97,6 +98,8 @@ typedef struct tPrimes {
 	uint64_t *numbers;
 } tPrimes;
 
+extern char *gQuartet;
+
 #define	BINARY_OPERATION_OR	0x00
 #define	BINARY_OPERATION_AND	0x01
 #define	BINARY_OPERATION_XOR	0x02
@@ -123,6 +126,10 @@ int mincrypt_decrypt_file(char *filename1, char *filename2, char *salt, char *pa
 int mincrypt_generate_keys(int bits, char *salt, char *password, char *key_private, char *key_public);
 long mincrypt_get_version(void);
 int mincrypt_set_simple_mode(int enable);
+unsigned char *mincrypt_convert_to_four_system(unsigned char *data, int len);
+unsigned char *mincrypt_convert_from_four_system(unsigned char *data, int len);
+int mincrypt_set_four_system_quartet(char *quartet);
+char *mincrypt_get_four_system_quartet(void);
 
 /* Function prototypes */
 uint32_t crc32_block(unsigned char *block, uint32_t length, uint64_t initVal);
@@ -148,5 +155,10 @@ unsigned int asymmetric_encrypt(unsigned int c, int e, int n);
 uint64_t asymmetric_encrypt_u64(uint64_t c, uint64_t e, uint64_t n);
 uint64_t asymmetric_decrypt_u64(uint64_t c, uint64_t d, uint64_t n);
 tPrimes get_prime_elements(uint64_t number);
+unsigned char *four_numbering_system_encode(unsigned char *data, int len);
+unsigned char *four_numbering_system_decode(unsigned char *data, int len);
+int four_numbering_system_test(unsigned char *data, int len);
+void four_numbering_system_set_quartet(char *quartet);
+char *four_numbering_system_get_quartet(void);
 
 #endif

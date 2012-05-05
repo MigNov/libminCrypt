@@ -188,3 +188,100 @@ uint64_t pow_and_mod(uint64_t n, uint64_t e, uint64_t mod)
 	return val;
 }
 
+int find_element_index(const char *str, int c)
+{
+	int i;
+
+	for (i = 0; i < strlen(str); i++) {
+		if (str[i] == c)
+			return i;
+	}
+
+	return -1;
+}
+
+void four_numbering_system_set_quartet(char *quartet)
+{
+	if (strlen(quartet) != 4)
+		return;
+
+	strncpy(gQuartet, quartet, 4);
+}
+
+char *four_numbering_system_get_quartet(void)
+{
+	return strdup(gQuartet);
+}
+
+unsigned char *four_numbering_system_encode(unsigned char *data, int len)
+{
+	int i, val;
+	char a[5] = { 0 };
+	unsigned char *output = NULL;
+
+	output = (unsigned char *)malloc( (len * 4) * sizeof(unsigned char) );
+	memset(output, 0, (len * 4) * sizeof(unsigned char));
+	for (i = 0; i < len; i++) {
+		val = data[i];
+
+		memset(a, 0, 5);
+		a[0] = gQuartet[(val / 64) % 4];
+		a[1] = gQuartet[(val / 16) % 4];
+		a[2] = gQuartet[(val / 4 ) % 4];
+		a[3] = gQuartet[(val / 1 ) % 4];
+
+		strcat((char *)output, a);
+	}
+
+	return output;
+}
+
+unsigned char *four_numbering_system_decode(unsigned char *data, int len)
+{
+	int i, j, k, val;
+	unsigned char *output = NULL;
+
+	if (len % 4 != 0)
+		return NULL;
+
+	output = (unsigned char *)malloc( (len / 4) * sizeof(unsigned char) );
+	memset(output, 0, (len / 4) * sizeof(unsigned char) );
+
+	for (i = 0; i < len; i += 4) {
+		val = 0;
+		for (j = 0; j < strlen(gQuartet); j++) {
+			k = find_element_index(gQuartet, data[i+j]);
+			if (k < 0) {
+				free(output);
+				return NULL;
+			}
+			val += (k * pow(4, 4 - (j + 1)));
+		}
+
+		output[i / 4] = val;
+	}
+
+	return output;
+}
+
+int four_numbering_system_test(unsigned char *data, int len)
+{
+	int ret;
+	unsigned char *tmp1 = NULL;
+	unsigned char *tmp2 = NULL;
+
+	if ((tmp1 = four_numbering_system_encode(data, len)) == NULL)
+		return -EIO;
+
+	if ((tmp2 = four_numbering_system_decode(tmp1, len * 4)) == NULL) {
+		free(tmp1);
+		return -EINVAL;
+	}
+
+	ret = (strcmp((char *)data, (char *)tmp2) != 0);
+	free(tmp1);
+	free(tmp2);
+
+	return ret;
+}
+

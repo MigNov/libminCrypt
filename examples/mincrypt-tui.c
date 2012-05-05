@@ -33,6 +33,7 @@ int vector_mult	= -1;
 int keysize	= 0;
 int decrypt	= 0;
 int simple_mode	= 0;
+int use_four_bs = 0;
 
 int parseArgs(int argc, char * const argv[]) {
 	int option_index = 0, c;
@@ -48,10 +49,12 @@ int parseArgs(int argc, char * const argv[]) {
 		{"key-size", 1, 0, 'k'},
 		{"key-file", 1, 0, 'f'},
 		{"dump-vectors", 1, 0, 'u'},
+		{"four-system", 0, 0, '4'},
+		{"quartet", 1, 0, 'q'},
 		{0, 0, 0, 0}
 	};
 
-	char *optstring = "i:o:p:s:v:k:u:d";
+	char *optstring = "i:o:p:s:v:k:u:q:d4";
 
 	while (1) {
 		c = getopt_long(argc, argv, optstring,
@@ -93,6 +96,13 @@ int parseArgs(int argc, char * const argv[]) {
 			case 'u':
 				dump_file = optarg;
 				break;
+			case '4':
+				use_four_bs = 1;
+				break;
+			case 'q':
+				if (!mincrypt_set_four_system_quartet(optarg))
+					printf("Warning: Cannot set four base system quartet to %s\n", optarg);
+				break;
 			case 'v':
 				vector_mult = atoi(optarg);
 				if (vector_mult < 32)
@@ -111,8 +121,8 @@ int main(int argc, char *argv[])
 	if (parseArgs(argc, argv)) {
 		printf("Syntax: %s --input-file=infile --output-file=outfile [--decrypt] [--password=pwd] [--salt=salt] "
 			"[--vector-multiplier=number] [--type=base64|binary] [--simple-mode] [--key-size <keysize> "
-			"--key-file <keyfile-prefix>] [--dump-vectors <dump-file>]\n",
-				argv[0]);
+			"--key-file <keyfile-prefix>] [--dump-vectors <dump-file>] [--four-system] [--four-quartet=<%s>]\n",
+				argv[0], mincrypt_get_four_system_quartet());
 		return 1;
 	}
 
@@ -129,6 +139,19 @@ int main(int argc, char *argv[])
 		}
 		password = strdup(tmp);
 		free(tmp);
+	}
+
+	/* Use base 4 numbering system for password and salt encoding */
+	if (use_four_bs == 1) {
+		unsigned char *tmp1 = NULL;
+
+		tmp1 = mincrypt_convert_to_four_system((unsigned char *)salt, strlen(salt));
+		salt = strdup(tmp1);
+		free(tmp1);
+
+		tmp1 = mincrypt_convert_to_four_system((unsigned char *)password, strlen(password));
+		password = strdup(tmp1);
+		free(tmp1);
 	}
 
 	if (keysize > 0) {

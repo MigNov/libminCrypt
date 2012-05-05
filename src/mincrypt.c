@@ -42,6 +42,9 @@ int type_approach = APPROACH_SYMMETRIC;
 int out_type = ENCODING_TYPE_BINARY;
 int _simple_mode = 0;
 
+/* "Base 4" numbering system should default to bytes relevant to it's original aim, i.e. to identify nucleotids in the DNA stream */
+extern char *gQuartet = "CGTA";
+
 /*
 	Private function name:	get_nearest_power_of_two
 	Since version:		0.0.1
@@ -325,6 +328,55 @@ int read_header_footer(int fd, int isFooter, int *isPrivate, int *bits)
 	free_tokens(t);
 
 	return ret;
+}
+
+/*
+	Function name:		mincrypt_generate_password
+	Since version:		0.0.5
+	Description:		The mincrypt_generate_password() function can generate random password of @len characters
+	Arguments:		@len [int]: number of password characters
+	Returns:		new password string
+*/
+char *mincrypt_generate_password(int len)
+{
+	int i, j;
+	char *out = NULL;
+	char chars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789=/";
+
+	if (len <= 0)
+		len = DEFAULT_NEW_PASSWORD_LENGTH;
+
+	out = (char *)malloc( (len + 1) * sizeof(char) );
+	memset(out, 0, len + 1);
+	srand( time(NULL) + rand() );
+	for (i = 0; i < len; i++)
+		out[i] = chars[rand() % strlen(chars)];
+
+	return out;
+}
+
+DLLEXPORT int mincrypt_set_four_system_quartet(char *quartet)
+{
+	if (strlen(quartet) != 4)
+		return -EINVAL;
+
+	four_numbering_system_set_quartet(quartet);
+	return 0;
+}
+
+DLLEXPORT char *mincrypt_get_four_system_quartet(void)
+{
+	return four_numbering_system_get_quartet();
+}
+
+DLLEXPORT unsigned char *mincrypt_convert_to_four_system(unsigned char *data, int len)
+{
+	return four_numbering_system_encode(data, len);
+}
+
+DLLEXPORT unsigned char *mincrypt_convert_from_four_system(unsigned char *data, int len)
+{
+	return four_numbering_system_decode(data, len);
 }
 
 /*
