@@ -130,6 +130,8 @@ unsigned char *mincrypt_convert_to_four_system(unsigned char *data, int len);
 unsigned char *mincrypt_convert_from_four_system(unsigned char *data, int len);
 int mincrypt_set_four_system_quartet(char *quartet);
 char *mincrypt_get_four_system_quartet(void);
+unsigned char *mincrypt_base64_encode(const char *in, size_t *size);
+unsigned char *mincrypt_base64_decode(const char *in, size_t *size);
 
 /* Function prototypes */
 uint32_t crc32_block(unsigned char *block, uint32_t length, uint64_t initVal);

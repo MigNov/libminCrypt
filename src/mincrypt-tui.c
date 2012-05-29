@@ -32,7 +32,7 @@ char *dump_file = NULL;
 int vector_mult	= -1;
 int keysize	= 0;
 int decrypt	= 0;
-int simple_mode	= 0;
+int simple_mode = 0;
 int use_four_bs = 0;
 
 int parseArgs(int argc, char * const argv[]) {
@@ -98,8 +98,8 @@ int parseArgs(int argc, char * const argv[]) {
 				break;
 			case 'e':
 				ver = mincrypt_get_version();
-				printf("Using library version %d.%d.%d\n", (long)((ver >> 16) & 0xFF),
-							(long)((ver >> 8 & 0xFF)), (long)(ver & 0xFF));
+				printf("Using library version %d.%d.%d\n", (int)((ver >> 16) & 0xFF),
+							(int)((ver >> 8 & 0xFF)), (int)(ver & 0xFF));
 				break;
 			case '4':
 				use_four_bs = 1;
@@ -146,16 +146,38 @@ int main(int argc, char *argv[])
 		free(tmp);
 	}
 
+	/* Process read handler for password */
+	if (strncmp(password, "read://", 7) == 0) {
+		int fd, size = -1;
+		char *fn = password + 7;
+
+		if (access(fn, R_OK) != 0) {
+			DPRINTF("Cannot read password file '%s'\n", fn);
+			return 1;
+		}
+
+		fd = open(fn, O_RDONLY);
+		size = lseek(fd, 0, SEEK_END);
+
+		lseek(fd, 0, SEEK_SET);
+		password = (char *)malloc( size * sizeof(char) );
+		if (read(fd, password, size) <= 0) {
+			DPRINTF("Cannot read the data from file '%s'\n", fn);
+			return 1;
+		}
+		close(fd);
+	}
+
 	/* Use base 4 numbering system for password and salt encoding */
 	if (use_four_bs == 1) {
 		unsigned char *tmp1 = NULL;
 
 		tmp1 = mincrypt_convert_to_four_system((unsigned char *)salt, strlen(salt));
-		salt = strdup(tmp1);
+		salt = strdup((char *)tmp1);
 		free(tmp1);
 
 		tmp1 = mincrypt_convert_to_four_system((unsigned char *)password, strlen(password));
-		password = strdup(tmp1);
+		password = strdup((char *)tmp1);
 		free(tmp1);
 	}
 

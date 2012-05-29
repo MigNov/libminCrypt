@@ -876,6 +876,32 @@ static unsigned char *mincrypt_process(unsigned char *block, int size, int decry
 }
 
 /*
+	Function name:		mincrypt_base64_encode
+	Since version:		0.0.5
+	Description:		Encodes data into Base64 format
+	Arguments:		@in [string]: pointer to input binary string
+				@size [size_t]: pointer to size of output
+	Returns:		base64-encoded string
+*/
+DLLEXPORT unsigned char *mincrypt_base64_encode(const char *in, size_t *size)
+{
+	return base64_encode(in, size);
+}
+
+/*
+	Function name:		mincrypt_base64_decode
+	Since version:		0.0.5
+	Description:		Decodes data from Base64 format
+	Arguments:		@in [string]: pointer to input base64-encoded string
+				@size [size_t]: pointer to size of output
+	Returns:		binary data
+*/
+DLLEXPORT unsigned char *mincrypt_base64_decode(const char *in, size_t *size)
+{
+	return base64_decode(in, size);
+}
+
+/*
 	Function name:		mincrypt_encrypt
 	Since version:		0.0.1
 	Description:		Main function for the data encryption. Takes the block, size and id as input arguments with returning new size
