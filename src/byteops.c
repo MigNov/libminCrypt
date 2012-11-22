@@ -202,8 +202,18 @@ int find_element_index(const char *str, int c)
 
 void four_numbering_system_set_quartet(char *quartet)
 {
+	int i, j;
+
 	if (strlen(quartet) != 4)
 		return;
+
+	/* Ensure there's no duplicity in the quartet characters */
+	/* Otherwise decoding would fail on duplicate characters */
+	for (i = 0; i < 4; i++)
+		for (j = 0; j < 4; j++)
+			if ((quartet[i] == quartet[j])
+				&& (i != j))
+				return;
 
 	strncpy(gQuartet, quartet, 4);
 }
