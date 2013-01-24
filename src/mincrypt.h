@@ -162,5 +162,7 @@ unsigned char *four_numbering_system_decode(unsigned char *data, int len);
 int four_numbering_system_test(unsigned char *data, int len);
 void four_numbering_system_set_quartet(char *quartet);
 char *four_numbering_system_get_quartet(void);
+char *mincrypt_encrypt_minimal(char *input, unsigned char *key, unsigned char *salt);
+char *mincrypt_decrypt_minimal(char *input, unsigned char *key, unsigned char *salt);
 
 #endif

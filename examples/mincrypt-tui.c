@@ -34,6 +34,7 @@ int keysize	= 0;
 int decrypt	= 0;
 int simple_mode	= 0;
 int use_four_bs = 0;
+int use_minimal = 0;
 
 int parseArgs(int argc, char * const argv[]) {
 	int option_index = 0, c;
@@ -51,10 +52,11 @@ int parseArgs(int argc, char * const argv[]) {
 		{"dump-vectors", 1, 0, 'u'},
 		{"four-system", 0, 0, '4'},
 		{"quartet", 1, 0, 'q'},
+		{"minimal", 0, 0, 'n'},
 		{0, 0, 0, 0}
 	};
 
-	char *optstring = "i:o:p:s:v:k:u:q:d4";
+	char *optstring = "i:o:p:s:v:k:u:q:d4n";
 
 	while (1) {
 		c = getopt_long(argc, argv, optstring,
@@ -103,6 +105,10 @@ int parseArgs(int argc, char * const argv[]) {
 				if (!mincrypt_set_four_system_quartet(optarg))
 					printf("Warning: Cannot set four base system quartet to %s\n", optarg);
 				break;
+			case 'n':
+				use_minimal = 1;
+				return 0;
+				break;
 			case 'v':
 				vector_mult = atoi(optarg);
 				if (vector_mult < 32)
@@ -113,6 +119,22 @@ int parseArgs(int argc, char * const argv[]) {
 	return ((((infile != NULL) && (outfile != NULL)) || ((keyfile != NULL) && (keysize > 0))) ? 0 : 1);
 }
 
+char *read_prompt(char *prompt)
+{
+	int c;
+	char ret[4096] = { 0 };
+	char tmp[2] = { 0 };
+
+	printf("%s", prompt);
+
+	while ((c = getchar()) != '\n') {
+		tmp[0] = c;
+		strcat(ret, tmp);
+	}
+
+	return strdup(ret);
+}
+
 int main(int argc, char *argv[])
 {
 	int ret = 0;
@@ -121,9 +143,34 @@ int main(int argc, char *argv[])
 	if (parseArgs(argc, argv)) {
 		printf("Syntax: %s --input-file=infile --output-file=outfile [--decrypt] [--password=pwd] [--salt=salt] "
 			"[--vector-multiplier=number] [--type=base64|binary] [--simple-mode] [--key-size <keysize> "
-			"--key-file <keyfile-prefix>] [--dump-vectors <dump-file>] [--four-system] [--four-quartet=<%s>]\n",
+			"--key-file <keyfile-prefix>] [--dump-vectors <dump-file>] [--four-system] [--four-quartet=<%s>] [--minimal]\n",
 				argv[0], mincrypt_get_four_system_quartet());
 		return 1;
+	}
+
+	if (use_minimal == 1) {
+		int c = 0;
+		char *in, *key, *salt;
+
+		printf("User requested minimal encryption/decryption. Overriding ...\n");
+		printf("Use encryption or decryption (E/D) ? ");
+		while ((c != 'e') && (c != 'E') && (c != 'd') && (c != 'D')) {
+			c = getchar();
+		}
+
+		while (getchar() != '\n') ;
+
+		printf("%scryption selected\n", ((c == 'D') || (c == 'd')) ? "De" : "En");
+
+		in = read_prompt("Enter input data: ");
+		key = read_prompt("Enter encryption key: ");
+		salt = read_prompt("Enter encryption salt: ");
+
+		if ((c == 'D') || (c == 'd'))
+			printf("Output: %s\n", mincrypt_decrypt_minimal(in, key, salt));
+		else
+			printf("Output: %s\n", mincrypt_encrypt_minimal(in, key, salt));
+		return 0;
 	}
 
 	if (salt == NULL)
