@@ -175,17 +175,16 @@ char *dec_to_hex(int dec)
 
 uint64_t pow_and_mod(uint64_t n, uint64_t e, uint64_t mod)
 {
-	uint64_t i;
-	uint64_t val = n;
-
-	for (i = 1; i < e; i++) {
-		val *= n;
-
-		if (val > mod)
-			val %= mod;
-	}
-
-	return val;
+        n %= mod;
+        uint64_t result = 1;
+        while (e > 0)
+        {
+                if (e & 1)
+                        result = (result * n) % mod;
+                n = (n * n) % mod;
+                e >>= 1;
+        }
+        return result;
 }
 
 int find_element_index(const char *str, int c)
