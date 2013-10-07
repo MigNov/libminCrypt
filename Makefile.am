@@ -1,5 +1,6 @@
 ACLOCAL_AMFLAGS=-I m4
 SOURCEDIR=`rpm --eval '%{_sourcedir}'`
+CFLAGS=-Wall
 
 SUBDIRS = src tests include
 

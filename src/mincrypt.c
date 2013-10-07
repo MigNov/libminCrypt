@@ -43,7 +43,7 @@ int out_type = ENCODING_TYPE_BINARY;
 int _simple_mode = 0;
 
 /* "Base 4" numbering system should default to bytes relevant to it's original aim, i.e. to identify nucleotids in the DNA stream */
-extern char *gQuartet = "CGTA";
+char *gQuartet = "CGTA";
 
 /*
 	Private function name:	get_nearest_power_of_two
@@ -339,7 +339,7 @@ int read_header_footer(int fd, int isFooter, int *isPrivate, int *bits)
 */
 char *mincrypt_generate_password(int len)
 {
-	int i, j;
+	int i;
 	char *out = NULL;
 	char chars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789=/";
 
@@ -953,7 +953,7 @@ DLLEXPORT unsigned char *mincrypt_encrypt(unsigned char *block, size_t size, int
                 out = malloc( csize * sizeof(unsigned char) );
                 memset(out, 0, csize);
 
-		strncpy(out, SIGNATURE, siglen);
+		strncpy((char *)out, SIGNATURE, siglen);
                 out[siglen+0] = out_type;
                 DPRINTF("%s: Saving out_type 0x%02x to chunk position 0\n", __FUNCTION__, out_type);
                 UINT32STR(data, (uint32_t)orig_size);
@@ -986,7 +986,7 @@ DLLEXPORT unsigned char *mincrypt_encrypt(unsigned char *block, size_t size, int
 		out = malloc( csize * sizeof(unsigned char) );
 		memset(out, 0, csize);
 
-		strncpy(out, SIGNATURE, siglen);
+		strncpy((char *)out, SIGNATURE, siglen);
 		out[siglen+0] = out_type;
 		DPRINTF("%s: Saving out_type 0x%02x to chunk position 0\n", __FUNCTION__, out_type);
 		UINT32STR(data, (uint32_t)size);
@@ -1064,7 +1064,7 @@ DLLEXPORT unsigned char *mincrypt_decrypt(unsigned char *block, size_t size, int
 	memset(signature, 0, siglen+1);
 	for (i = 0; i < siglen; i++)
 		signature[i] = block[i];
-	if (strcmp(signature, SIGNATURE) != 0) {
+	if (strcmp((char *)signature, SIGNATURE) != 0) {
 		fprintf(stderr, "Error: Block is not a valid mincrypt encrypted block (expected '%s' but '%s' found)\n",
 			SIGNATURE, signature);
 		free(signature);
@@ -1105,10 +1105,6 @@ DLLEXPORT unsigned char *mincrypt_decrypt(unsigned char *block, size_t size, int
 	data[2] = block[siglen+15];
 	data[3] = block[siglen+16];
 	abShift = (uint64_t)GETUINT32(data);
-	if (abShift > 0)
-		DPRINTF("%s: Asymmetric block shift value for decryption is 0x%"PRIx64"\n", __FUNCTION__, abShift);
-	else
-		DPRINTF("%s: No asymmetric block shift value set for decryption. Asymmetric approach not used\n", __FUNCTION__);
 
 	if (out_type == ENCODING_TYPE_BINARY) {
 		out = mincrypt_process(block+17+siglen, orig_size, 1, old_crc, id, abShift);

@@ -14,6 +14,7 @@
 // Comment following line to enable debugging
 #define DISABLE_DEBUG
 
+#define MINCRYPT_BANNER			"minCrypt encryption system"
 #define BUFFER_SIZE			(1 << 17)			/* Make 128 kB to be default buffer size */
 #define BUFFER_SIZE_BASE64		(((BUFFER_SIZE + 2) / 3) * 4)
 #define O_LARGEFILE			0x0200000
@@ -25,6 +26,15 @@
 #define ENCODING_TYPE_BASE		0x10
 #define ENCODING_TYPE_BINARY		ENCODING_TYPE_BASE
 #define ENCODING_TYPE_BASE64		ENCODING_TYPE_BASE + 1
+
+/* Flags for DH-like encryption */
+#define	MINCRYPT_FLAG_DHKEY_COMMON_P	0x0000001
+#define	MINCRYPT_FLAG_DHKEY_COMMON_G	0x0000002
+#define	MINCRYPT_FLAG_DHKEY_COMMON	(MINCRYPT_FLAG_DHKEY_COMMON_P | MINCRYPT_FLAG_DHKEY_COMMON_G)
+#define	MINCRYPT_FLAG_DHKEY_PUBLIC	0x0000004
+#define	MINCRYPT_FLAG_DHKEY_PRIVATE	0x0000008
+#define	MINCRYPT_FLAG_DHVAL_RECEIVER	0x0000001
+#define	MINCRYPT_FLAG_DHVAL_SENDER	0x0000002
 
 //#define USE_LARGE_FILE
 
@@ -164,5 +174,83 @@ void four_numbering_system_set_quartet(char *quartet);
 char *four_numbering_system_get_quartet(void);
 char *mincrypt_encrypt_minimal(char *input, unsigned char *key, unsigned char *salt);
 char *mincrypt_decrypt_minimal(char *input, unsigned char *key, unsigned char *salt);
+
+/* Diffie-Hellman related stuff */
+typedef struct tDHCommon {
+	uint64_t p;
+	uint64_t g;
+} tDHCommon;
+
+typedef struct tRndValues {
+	int num;
+	uint64_t *vals;
+} tRndValues;
+
+typedef struct tDHKeyPair {
+	int num;
+	uint64_t *vPublic;
+	uint64_t *vPrivate;
+	tDHCommon *common;
+} tDHKeyPair;
+
+typedef struct tTokenizerU64 {
+	int numVals;
+	uint64_t *vals;
+} tTokenizerU64;
+
+typedef struct tDHParams {
+	int type;
+	int step;
+	int count;
+	char *filename;
+} tDHParams;
+
+typedef struct tDHData {
+	int step;
+	int direction;
+	int num;
+	uint64_t *vals;
+
+	// Files before operation
+	char *bfilename_common;
+	unsigned long bfilename_common_size;
+	char *bfilename_private;
+	unsigned long bfilename_private_size;
+	char *bfilename_public;
+	unsigned long bfilename_public_size;
+
+	// Files after operation
+	char *afilename_common;
+	unsigned long afilename_common_size;
+	char *afilename_private;
+	unsigned long afilename_private_size;
+	char *afilename_public;
+	unsigned long afilename_public_size;
+} tDHData;
+
+tDHKeyPair DH_KEYPAIR_EMPTY;
+tDHParams  DH_PARAMS_EMPTY;
+tDHData    DH_DATA_EMPTY;
+
+void mincrypt_init(void);
+void dh_mincrypt_init(void);
+tDHParams dh_parse_value(char *val);
+tDHCommon dh_generate_pg_values(int val);
+tRndValues generate_random_values(int num, uint64_t max);
+tDHKeyPair dh_generate_keypair(int num, tDHCommon *common);
+int dh_write_shared(int fd, tDHKeyPair kp, int flags);
+int dh_write_file(char *filename, tDHKeyPair kp, int flags);
+int dh_get_number_of_elements(char *filename);
+tDHKeyPair dh_read_file(char *filename, tDHKeyPair kp);
+void dh_keypair_dump(tDHKeyPair kp);
+tTokenizer tokenize_by(char *string, char *by);
+int dh_get_number_of_elements(char *filename);
+void dh_keypair_free(tDHKeyPair kp);
+void dh_process_data_dump(tDHData data);
+void dh_process_data_free(tDHData data);
+tDHData dh_process_data(tDHParams dh_params);
+unsigned long get_file_size(char *fn);
+unsigned char *uint64_to_binary(uint64_t n, int strip);
+unsigned char *uint64_to_bytes(uint64_t n, int len);
 
 #endif

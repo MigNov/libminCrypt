@@ -21,6 +21,58 @@ do { fprintf(stderr, "[mincrypt/byteops     ] " fmt , ##args); } while (0)
 #define DPRINTF(fmt, args...) do {} while(0)
 #endif
 
+tDHCommon dh_generate_pg_values(int val)
+{
+	uint64_t p, g;
+	tDHCommon ret;
+
+	srand( time(NULL) * val );
+	p = rand() % UINT64_MAX;
+	srand( time(NULL) + val * val );
+	g = rand() % UINT64_MAX;
+
+	ret.p = p;
+	ret.g = g;
+
+	return ret;
+}
+
+uint64_t dh_calculate_value(tDHCommon common, uint64_t pv)
+{
+	return pow_and_mod(common.g, pv, common.p);
+}
+
+tDHKeyPair dh_generate_keypair(int num, tDHCommon *common)
+{
+	int i;
+	tDHKeyPair ret;
+	tRndValues privateVals;
+
+	if (common != NULL)
+		srand( time(NULL) * rand() * num );
+	else
+		srand( time(NULL) * rand() );
+
+	ret.num = num;
+	privateVals = generate_random_values(num, 0);
+	ret.common = (tDHCommon *)malloc( num * sizeof(tDHCommon) );
+	ret.vPrivate = (uint64_t *)malloc( num * sizeof(uint64_t) );
+	ret.vPublic = (uint64_t *)malloc( num * sizeof(uint64_t) );
+	for (i = 0; i < num; i++) {
+		if (common != NULL)
+			ret.common[i] = common[i];
+		else
+			ret.common[i] = dh_generate_pg_values( i + 1 );
+		ret.vPrivate[i] = privateVals.vals[i];
+		ret.vPublic[i] = dh_calculate_value(ret.common[i], ret.vPrivate[i]);
+
+		DPRINTF("%s: (#%6d) p = 0x%08"PRIx64", g = 0x%08"PRIx64", v = 0x%08"PRIx64", V = 0x%08"PRIx64"\n",
+			__FUNCTION__, i, ret.common[i].p, ret.common[i].g, ret.vPrivate[i], ret.vPublic[i]);
+	}
+
+	return ret;
+}
+
 uint64_t bits_to_num(char *bits, int num)
 {
 	int i;

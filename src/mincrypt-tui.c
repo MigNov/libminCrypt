@@ -22,18 +22,20 @@ do { fprintf(stderr, "[mincrypt/main        ] " fmt , ## __VA_ARGS__); } while (
 do {} while(0)
 #endif
 
-char *infile	= NULL;
-char *outfile	= NULL;
-char *password	= NULL;
-char *salt	= NULL;
-char *type	= NULL;
-char *keyfile	= NULL;
-char *dump_file = NULL;
-int vector_mult	= -1;
-int keysize	= 0;
-int decrypt	= 0;
-int simple_mode = 0;
-int use_four_bs = 0;
+tDHParams dh_params;
+
+char *infile		= NULL;
+char *outfile		= NULL;
+char *salt		= NULL;
+char *type		= NULL;
+char *keyfile		= NULL;
+char *dump_file 	= NULL;
+int vector_mult		= -1;
+int keysize		= 0;
+int decrypt		= 0;
+int simple_mode 	= 0;
+int use_four_bs 	= 0;
+unsigned char *password = NULL;
 
 int parseArgs(int argc, char * const argv[]) {
 	long ver;
@@ -51,10 +53,11 @@ int parseArgs(int argc, char * const argv[]) {
 		{"key-file", 1, 0, 'f'},
 		{"dump-vectors", 1, 0, 'u'},
 		{"version", 0, 0, 'e'},
+		{"dh-step", 1, 0, 'h'},
 		{0, 0, 0, 0}
 	};
 
-	char *optstring = "i:o:p:s:v:k:u:de";
+	char *optstring = "i:o:h:p:s:v:k:u:de";
 
 	while (1) {
 		c = getopt_long(argc, argv, optstring,
@@ -104,6 +107,9 @@ int parseArgs(int argc, char * const argv[]) {
 			case '4':
 				use_four_bs = 1;
 				break;
+			case 'h':
+				dh_params = dh_parse_value(optarg);
+				break;
 			case 'q':
 				if (!mincrypt_set_four_system_quartet(optarg))
 					printf("Warning: Cannot set four base system quartet to %s\n", optarg);
@@ -115,35 +121,83 @@ int parseArgs(int argc, char * const argv[]) {
 		}
 	}
 
-	return ((((infile != NULL) && (outfile != NULL)) || ((keyfile != NULL) && (keysize > 0))) ? 0 : 1);
+	return ((((infile != NULL) && (outfile != NULL)) || ((keyfile != NULL) && (keysize > 0)) || (dh_params.step > 0)) ? 0 : 1);
 }
 
 int main(int argc, char *argv[])
 {
 	int ret = 0;
 	int isPrivate = 0;
+	tDHData dhd = DH_DATA_EMPTY;
+
+	mincrypt_init();
 
 	if (parseArgs(argc, argv)) {
-		printf("Syntax: %s --input-file=infile --output-file=outfile [--decrypt] [--password=pwd] [--salt=salt] "
-			"[--vector-multiplier=number] [--type=base64|binary] [--simple-mode] [--key-size <keysize> "
-			"--key-file <keyfile-prefix>] [--dump-vectors <dump-file>] [--version]\n",
+		printf("%s v%s\n", MINCRYPT_BANNER, PACKAGE_VERSION);
+		printf("\nSyntax: %s --input-file=infile --output-file=outfile [--decrypt] [--password=pwd] [--salt=salt]\n"
+			"\t\t[--vector-multiplier=number] [--type=base64|binary] [--simple-mode] [--key-size <keysize>\n"
+			"\t\t--key-file <keyfile-prefix>] [--dump-vectors <dump-file>] [--version] [--dh-step <value>]\n",
 				argv[0]);
+
+		printf("\n");
+		printf("The --dh-step option is determining step for Diffie-Hellman like encryption system. The <value> should be\n");
+		printf("in the \"<type>:<step>:<file>[:count]\" format. Count is applicable only for step 1 and it  will specify how\n");
+		printf("many values to generate - i.e. the length of the key. The <type> value can be either s (or Sender) or r (or\n");
+		printf("Receiver) and the <step> can be one of following values:\n\n");
+		printf("\t1\t- generate common, private and public key parts (in <file> and <file>.pub files)\n");
+		printf("\t2\t- generate private and public values using common information from file <file>\n");
+		printf("\nBy common information/values the key value \"p\" and group value \"g\" are meant.\n");
 		return 1;
+	}
+
+	if (dh_params.step > 0) {
+		DPRINTF("DHParams = { type: %s, step: %d, count: %d, filename: %s }\n",
+				(dh_params.type == MINCRYPT_FLAG_DHVAL_RECEIVER) ? "Receiver" : 
+				((dh_params.type == MINCRYPT_FLAG_DHVAL_SENDER) ? "Sender" : "Unknown"),
+				dh_params.step, dh_params.count, dh_params.filename);
+		dhd = dh_process_data(dh_params);
+
+		if (dh_params.step != 3) {
+			dh_process_data_dump(dhd);
+			dh_process_data_free(dhd);
+			return 0;
+		}
 	}
 
 	if (salt == NULL)
 		salt = DEFAULT_SALT_VAL;
 
 	if (password == NULL) {
-		char *tmp;
+		/* This means we don't use DH-like encryption */
+		if (dhd.step == -1) {
+			char *tmp;
 
-		tmp = getpass("Enter password value: ");
-		if (tmp == NULL) {
-			printf("Error: No password entered\n");
-			return 1;
+			tmp = getpass("Enter password value: ");
+			if (tmp == NULL) {
+				printf("Error: No password entered\n");
+				return 1;
+			}
+			password = strdup(tmp);
+			free(tmp);
 		}
-		password = strdup(tmp);
-		free(tmp);
+		else {
+			int i, j;
+			password = (unsigned char *)malloc( ((dhd.num * 8) + 1) * sizeof(unsigned char) );
+			memset(password, 0, ((dhd.num * 8) + 1) * sizeof(unsigned char) );
+
+			for (i = 0; i < dhd.num; i++) {
+				unsigned char *ret = uint64_to_bytes(dhd.vals[i], 4);
+				for (j = 0; j < 4; j++) {
+					char tmpx[3] = { 0 };
+					snprintf(tmpx, sizeof(tmpx), "%02x", ret[j]);
+
+					strcat(password, tmpx);
+				}
+				free(ret); ret = NULL;
+			}
+
+			DPRINTF("Asymmetric key exchange used. Password: %s\n", password);
+		}
 	}
 
 	/* Process read handler for password */
@@ -240,5 +294,7 @@ int main(int argc, char *argv[])
 	else
 		printf("Action has been completed successfully\n");
 
+	dh_process_data_dump(dhd);
+	dh_process_data_free(dhd);
 	return ret;
 }
