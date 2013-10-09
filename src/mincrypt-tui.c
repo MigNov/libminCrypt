@@ -1,12 +1,12 @@
 /*
- *  mincrypt-main.c: Minimalistic encryption system application
- *
- *  Copyright (c) 2010-2012, Michal Novotny <mignov@gmail.com>
- *  All rights reserved.
- *
- *  See COPYING for the license of this software
- *
- */
+*  mincrypt-main.c: Minimalistic encryption system application
+*
+*  Copyright (c) 2010-2012, Michal Novotny <mignov@gmail.com>
+*  All rights reserved.
+*
+*  See COPYING for the license of this software
+*
+*/
 
 #include "mincrypt.h"
 
@@ -22,7 +22,7 @@ do { fprintf(stderr, "[mincrypt/main        ] " fmt , ## __VA_ARGS__); } while (
 do {} while(0)
 #endif
 
-tDHParams dh_params;
+tAKDParams akd_params;
 
 char *infile		= NULL;
 char *outfile		= NULL;
@@ -38,26 +38,26 @@ int use_four_bs 	= 0;
 unsigned char *password = NULL;
 
 int parseArgs(int argc, char * const argv[]) {
-	long ver;
-	int option_index = 0, c;
-	struct option long_options[] = {
-		{"input-file", 1, 0, 'i'},
-		{"output-file", 1, 0, 'o'},
-		{"password", 1, 0, 'p'},
-		{"salt", 1, 0, 's'},
-		{"decrypt", 0, 0, 'd'},
-		{"type", 1, 0, 't'},
-		{"simple-mode", 0, 0, 'm'},
+long ver;
+int option_index = 0, c;
+struct option long_options[] = {
+	{"input-file", 1, 0, 'i'},
+	{"output-file", 1, 0, 'o'},
+	{"password", 1, 0, 'p'},
+	{"salt", 1, 0, 's'},
+	{"decrypt", 0, 0, 'd'},
+	{"type", 1, 0, 't'},
+	{"simple-mode", 0, 0, 'm'},
 		{"vector-multiplier", 1, 0, 'v'},
 		{"key-size", 1, 0, 'k'},
 		{"key-file", 1, 0, 'f'},
 		{"dump-vectors", 1, 0, 'u'},
 		{"version", 0, 0, 'e'},
-		{"dh-step", 1, 0, 'h'},
+		{"akd-step", 1, 0, 'a'},
 		{0, 0, 0, 0}
 	};
 
-	char *optstring = "i:o:h:p:s:v:k:u:de";
+	char *optstring = "i:o:a:p:s:v:k:u:de";
 
 	while (1) {
 		c = getopt_long(argc, argv, optstring,
@@ -107,8 +107,8 @@ int parseArgs(int argc, char * const argv[]) {
 			case '4':
 				use_four_bs = 1;
 				break;
-			case 'h':
-				dh_params = dh_parse_value(optarg);
+			case 'a':
+				akd_params = akd_parse_value(optarg);
 				break;
 			case 'q':
 				if (!mincrypt_set_four_system_quartet(optarg))
@@ -121,14 +121,14 @@ int parseArgs(int argc, char * const argv[]) {
 		}
 	}
 
-	return ((((infile != NULL) && (outfile != NULL)) || ((keyfile != NULL) && (keysize > 0)) || (dh_params.step > 0)) ? 0 : 1);
+	return ((((infile != NULL) && (outfile != NULL)) || ((keyfile != NULL) && (keysize > 0)) || (akd_params.step > 0)) ? 0 : 1);
 }
 
 int main(int argc, char *argv[])
 {
 	int ret = 0;
 	int isPrivate = 0;
-	tDHData dhd = DH_DATA_EMPTY;
+	tAKDData akd = AKD_DATA_EMPTY;
 
 	mincrypt_init();
 
@@ -150,27 +150,30 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (dh_params.step > 0) {
+	if (akd_params.step > 0) {
 		DPRINTF("DHParams = { type: %s, step: %d, count: %d, filename: %s }\n",
-				(dh_params.type == MINCRYPT_FLAG_DHVAL_RECEIVER) ? "Receiver" : 
-				((dh_params.type == MINCRYPT_FLAG_DHVAL_SENDER) ? "Sender" : "Unknown"),
-				dh_params.step, dh_params.count, dh_params.filename);
-		dhd = dh_process_data(dh_params);
+				(akd_params.type == MINCRYPT_FLAG_DHVAL_RECEIVER) ? "Receiver" : 
+				((akd_params.type == MINCRYPT_FLAG_DHVAL_SENDER) ? "Sender" : "Unknown"),
+				akd_params.step, akd_params.count, akd_params.filename);
+		akd = akd_process_data(akd_params);
 
-		if (dh_params.step != 3) {
-			dh_process_data_dump(dhd);
-			dh_process_data_free(dhd);
-			return 0;
+		if ((akd_params.step < 3) || (akd.num == 0)) {
+			int ret = (akd.num == 0) ? 1 : 0;
+			akd_process_data_dump(akd);
+			akd_process_data_free(akd);
+			if (ret == 1)
+				fprintf(stderr, "Error: Number of keys found is zero!\n");
+			return ret;
 		}
 	}
 
-	if (salt == NULL)
-		salt = DEFAULT_SALT_VAL;
-
 	if (password == NULL) {
 		/* This means we don't use DH-like encryption */
-		if (dhd.step == -1) {
+		if (akd.step == -1) {
 			char *tmp;
+
+			if (salt == NULL)
+				salt = DEFAULT_SALT_VAL;
 
 			tmp = getpass("Enter password value: ");
 			if (tmp == NULL) {
@@ -182,11 +185,11 @@ int main(int argc, char *argv[])
 		}
 		else {
 			int i, j;
-			password = (unsigned char *)malloc( ((dhd.num * 8) + 1) * sizeof(unsigned char) );
-			memset(password, 0, ((dhd.num * 8) + 1) * sizeof(unsigned char) );
+			password = (unsigned char *)malloc( ((akd.num * 8) + 1) * sizeof(unsigned char) );
+			memset(password, 0, ((akd.num * 8) + 1) * sizeof(unsigned char) );
 
-			for (i = 0; i < dhd.num; i++) {
-				unsigned char *ret = uint64_to_bytes(dhd.vals[i], 4);
+			for (i = 0; i < akd.num; i++) {
+				unsigned char *ret = uint64_to_bytes(akd.vals[i], 4);
 				for (j = 0; j < 4; j++) {
 					char tmpx[3] = { 0 };
 					snprintf(tmpx, sizeof(tmpx), "%02x", ret[j]);
@@ -197,6 +200,20 @@ int main(int argc, char *argv[])
 			}
 
 			DPRINTF("Asymmetric key exchange used. Password: %s\n", password);
+
+			uint32_t tmp = crc32_block(password, strlen(password), 0xFFFFFFFF);
+			char tmpS[32] = { 0 };
+			snprintf(tmpS, sizeof(tmpS), "%"PRIx64, tmp);
+			salt = strdup(tmpS);
+
+			if (akd_params.step == 4) {
+				printf("Asymmetric key resulted into password: %s (salt is %s)\n", password, salt);
+				free(password);
+				free(salt);
+				akd_process_data_free(akd);
+
+				return 0;
+			}
 		}
 	}
 
@@ -294,7 +311,7 @@ int main(int argc, char *argv[])
 	else
 		printf("Action has been completed successfully\n");
 
-	dh_process_data_dump(dhd);
-	dh_process_data_free(dhd);
+	akd_process_data_dump(akd);
+	akd_process_data_free(akd);
 	return ret;
 }

@@ -10,6 +10,8 @@
 
 #include "mincrypt.h"
 
+#define DEBUG_MINCRYPT
+
 #ifndef DISABLE_DEBUG
 #define DEBUG_MINCRYPT
 #endif
@@ -1347,12 +1349,12 @@ DLLEXPORT char *mincrypt_decrypt_minimal(char *input, unsigned char *key, unsign
 	Description:		Function for the entire file encryption. Takes the input and output files, salt, password and vector_multiplier value
 	Arguments:		@filename1 [string]: input (original) file
 				@filename2 [string]: output (encrypted) file
-				@salt [string]: salt value to be used, may be NULL to use already set IVs if applicable, used only with conjuction password
 				@password [string]: password value to be used, may be NULL to use already set IVs if applicable, used only with conjuction salt
+				@salt [string]: salt value to be used, may be NULL to use already set IVs if applicable, used only with conjuction password
 				@vector_multiplier [int]: vector multiplier value, can be 0, used only if salt and password are set
 	Returns:		0 for no error, otherwise error code
 */
-DLLEXPORT int mincrypt_encrypt_file(char *filename1, char *filename2, char *salt, char *password, int vector_multiplier)
+DLLEXPORT int mincrypt_encrypt_file(char *filename1, char *filename2, char *password, char *salt, int vector_multiplier)
 {
 	unsigned char buf[BUFFER_SIZE] = { 0 };
 	unsigned char *outbuf;
@@ -1415,12 +1417,12 @@ DLLEXPORT int mincrypt_encrypt_file(char *filename1, char *filename2, char *salt
 	Description:		Function for the entire file decryption. Takes the input and output files, salt, password and vector_multiplier value
 	Arguments:		@filename1 [string]: input (encrypted) file
 				@filename2 [string]: output (decrypted) file
-				@salt [string]: salt value to be used, may be NULL to use already set IVs if applicable, used only with conjuction password
 				@password [string]: password value to be used, may be NULL to use already set IVs if applicable, used only with conjuction salt
+				@salt [string]: salt value to be used, may be NULL to use already set IVs if applicable, used only with conjuction password
 				@vector_multiplier [int]: vector multiplier value, can be 0, used only if salt and password are set
 	Returns:		0 for no error, otherwise error code
 */
-DLLEXPORT int mincrypt_decrypt_file(char *filename1, char *filename2, char *salt, char *password, int vector_multiplier)
+DLLEXPORT int mincrypt_decrypt_file(char *filename1, char *filename2, char *password, char *salt, int vector_multiplier)
 {
 	unsigned char buf[BUFFER_SIZE_BASE64+17+3 /* strlen(SIGNATURE) */] = { 0 };
 	char *outbuf;

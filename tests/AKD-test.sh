@@ -5,7 +5,7 @@ print_error()
 	echo "$@" 1>&2
 }
 
-dh_test()
+akd_test()
 {
 	local len="$1"
 	local sname="$2"
@@ -15,9 +15,9 @@ dh_test()
 	rm -f test-key*
 
 	tmStart=$(date +%s)
-	../src/mincrypt -h s:1:test-key:$len > /dev/null
-	../src/mincrypt -h r:1:test-key:$len > /dev/null
-	../src/mincrypt -h s:2:test-key:$len > /dev/null
+	../src/mincrypt -a s:1:test-key:$len > /dev/null
+	../src/mincrypt -a r:1:test-key:$len > /dev/null
+	../src/mincrypt -a s:2:test-key:$len > /dev/null
 
 	# As we are emulating to be both sender and receiver (or both Alice and Bob, if you prefer :-))
 	# we have to rename the file to different names. File test-key is a private key and the file
@@ -30,8 +30,8 @@ dh_test()
 	res="PASS"
 	# Better test is to put input and output files to do real encryption
 	# Also, the lines below work only when debug log is enabled which is not optimal
-	#../src/mincrypt -h s:3:test-key:$len > tmpA
-	#../src/mincrypt -h r:3:test-key2:$len > tmpB
+	#../src/mincrypt -a s:3:test-key:$len > tmpA
+	#../src/mincrypt -a r:3:test-key2:$len > tmpB
 	#if ! diff -up tmpA tmpB; then
 	#	res="FAIL"
 	#fi
@@ -39,8 +39,8 @@ dh_test()
 
 	snamex=${sname// /_}
 	sfile="$file-$snamex"
-	../src/mincrypt -h s:3:test-key:$len --input-file $TEMP_DIR/$file --output-file=$TEMP_DIR/$sfile.enc > /dev/null
-	../src/mincrypt -h r:3:test-key2:$len --input-file $TEMP_DIR/$sfile.enc --output-file=$TEMP_DIR/$sfile.dec --decrypt > /dev/null
+	../src/mincrypt -a s:3:test-key:$len --input-file $TEMP_DIR/$file --output-file=$TEMP_DIR/$sfile.enc > /dev/null
+	../src/mincrypt -a r:3:test-key2:$len --input-file $TEMP_DIR/$sfile.enc --output-file=$TEMP_DIR/$sfile.dec --decrypt > /dev/null
 
 	diff $TEMP_DIR/$file $TEMP_DIR/$sfile.dec > /dev/null
 	if [ $? -ne 0 ]; then

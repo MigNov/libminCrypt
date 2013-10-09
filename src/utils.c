@@ -23,7 +23,7 @@ do { fprintf(stderr, "[mincrypt/utils       ] " fmt , ##args); } while (0)
 
 void mincrypt_init(void)
 {
-	dh_mincrypt_init();
+	akd_mincrypt_init();
 }
 
 unsigned long get_file_size(char *fn)
@@ -112,12 +112,12 @@ tRndValues generate_random_values(int num, uint64_t max)
 	return ret;
 }
 
-tDHParams dh_parse_value(char *val)
+tAKDParams akd_parse_value(char *val)
 {
 	tTokenizer t;
 	int count, step, type;
 	char *filename = NULL;
-	tDHParams ret = DH_PARAMS_EMPTY;
+	tAKDParams ret = AKD_PARAMS_EMPTY;
 
 	t = tokenize_by(val, ":");
 	if (t.numTokens < 2)
@@ -155,7 +155,7 @@ cleanup:
 	return ret;
 }
 
-int dh_write_shared(int fd, tDHKeyPair kp, int flags)
+int akd_write_shared(int fd, tAKDKeyPair kp, int flags)
 {
 	int i;
 	char tmp[64] = { 0 };
@@ -212,7 +212,7 @@ int dh_write_shared(int fd, tDHKeyPair kp, int flags)
 	return 0;
 }
 
-int dh_write_private(int fd, tDHKeyPair kp)
+int akd_write_private(int fd, tAKDKeyPair kp)
 {
 	int i;
 	char tmp[64] = { 0 };
@@ -242,7 +242,7 @@ int dh_write_private(int fd, tDHKeyPair kp)
 	return 0;
 }
 
-int dh_write_public(int fd, tDHKeyPair kp)
+int akd_write_public(int fd, tAKDKeyPair kp)
 {
 	int i;
 	char tmp[64] = { 0 };
@@ -272,7 +272,7 @@ int dh_write_public(int fd, tDHKeyPair kp)
 	return 0;
 }
 
-int dh_write_file(char *filename, tDHKeyPair kp, int flags)
+int akd_write_file(char *filename, tAKDKeyPair kp, int flags)
 {
 	int fd, ret;
 
@@ -290,7 +290,7 @@ int dh_write_file(char *filename, tDHKeyPair kp, int flags)
 	}
 
 	if (flags & MINCRYPT_FLAG_DHKEY_COMMON_P) {
-		ret = dh_write_shared(fd, kp, flags);
+		ret = akd_write_shared(fd, kp, flags);
 		if (ret != 0) {
 			DPRINTF("%s: Write shared failed with error %d\n", __FUNCTION__, ret);
 			close(fd);
@@ -303,7 +303,7 @@ int dh_write_file(char *filename, tDHKeyPair kp, int flags)
 		if (flags & MINCRYPT_FLAG_DHKEY_COMMON_P)
 			write(fd, "\n", 1);
 
-		ret = dh_write_public(fd, kp);
+		ret = akd_write_public(fd, kp);
 		if (ret != 0) {
 			DPRINTF("%s: Write public failed with error %d\n", __FUNCTION__, ret);
 			close(fd);
@@ -316,7 +316,7 @@ int dh_write_file(char *filename, tDHKeyPair kp, int flags)
 		if (flags & MINCRYPT_FLAG_DHKEY_COMMON_P)
 			write(fd, "\n", 1);
 
-		ret = dh_write_private(fd, kp);
+		ret = akd_write_private(fd, kp);
 		if (ret != 0) {
 			DPRINTF("%s: Write private failed with error %d\n", __FUNCTION__, ret);
 			close(fd);
@@ -362,37 +362,37 @@ tTokenizerU64 split_line_by_number_of_chars(char *input, int num)
 	return ret;
 }
 
-void dh_mincrypt_init(void)
+void akd_mincrypt_init(void)
 {
-	DH_KEYPAIR_EMPTY.num = 0;
-	DH_KEYPAIR_EMPTY.common = NULL;
-	DH_KEYPAIR_EMPTY.vPrivate = NULL;
-	DH_KEYPAIR_EMPTY.vPublic = NULL;
+	AKD_KEYPAIR_EMPTY.num = 0;
+	AKD_KEYPAIR_EMPTY.common = NULL;
+	AKD_KEYPAIR_EMPTY.vPrivate = NULL;
+	AKD_KEYPAIR_EMPTY.vPublic = NULL;
 
-	DH_PARAMS_EMPTY.type = -1;
-	DH_PARAMS_EMPTY.step = 0;
-	DH_PARAMS_EMPTY.count = 0;
-	DH_PARAMS_EMPTY.filename = NULL;
+	AKD_PARAMS_EMPTY.type = -1;
+	AKD_PARAMS_EMPTY.step = 0;
+	AKD_PARAMS_EMPTY.count = 0;
+	AKD_PARAMS_EMPTY.filename = NULL;
 
-	DH_DATA_EMPTY.afilename_common = NULL;
-	DH_DATA_EMPTY.afilename_private = NULL;
-	DH_DATA_EMPTY.afilename_public = NULL;
-	DH_DATA_EMPTY.bfilename_common = NULL;
-	DH_DATA_EMPTY.bfilename_private = NULL;
-	DH_DATA_EMPTY.bfilename_public = NULL;
-	DH_DATA_EMPTY.afilename_common_size = 0;
-	DH_DATA_EMPTY.afilename_private_size = 0;
-	DH_DATA_EMPTY.afilename_public_size = 0;
-	DH_DATA_EMPTY.bfilename_common_size = 0;
-	DH_DATA_EMPTY.bfilename_private_size = 0;
-	DH_DATA_EMPTY.bfilename_public_size = 0;
-	DH_DATA_EMPTY.step = -1;
-	DH_DATA_EMPTY.direction = -1;
-	DH_DATA_EMPTY.num = 0;
-	DH_DATA_EMPTY.vals = NULL;
+	AKD_DATA_EMPTY.afilename_common = NULL;
+	AKD_DATA_EMPTY.afilename_private = NULL;
+	AKD_DATA_EMPTY.afilename_public = NULL;
+	AKD_DATA_EMPTY.bfilename_common = NULL;
+	AKD_DATA_EMPTY.bfilename_private = NULL;
+	AKD_DATA_EMPTY.bfilename_public = NULL;
+	AKD_DATA_EMPTY.afilename_common_size = 0;
+	AKD_DATA_EMPTY.afilename_private_size = 0;
+	AKD_DATA_EMPTY.afilename_public_size = 0;
+	AKD_DATA_EMPTY.bfilename_common_size = 0;
+	AKD_DATA_EMPTY.bfilename_private_size = 0;
+	AKD_DATA_EMPTY.bfilename_public_size = 0;
+	AKD_DATA_EMPTY.step = -1;
+	AKD_DATA_EMPTY.direction = -1;
+	AKD_DATA_EMPTY.num = 0;
+	AKD_DATA_EMPTY.vals = NULL;
 }
 
-int dh_get_number_of_elements(char *filename)
+int akd_get_number_of_elements(char *filename)
 {
 	FILE *fp = NULL;
 	char buf[100] = { 0 };
@@ -428,28 +428,28 @@ int dh_get_number_of_elements(char *filename)
 	return ret;
 }
 
-tDHKeyPair dh_read_file(char *filename, tDHKeyPair kp)
+tAKDKeyPair akd_read_file(char *filename, tAKDKeyPair kp)
 {
 	int i, idx, num;
 	int dtype = 0;
 	FILE *fp = NULL;
 	char buf[100] = { 0 };
-	tDHKeyPair ret;
+	tAKDKeyPair ret;
 	tTokenizerU64 vals;
 
 	if (access(filename, R_OK) != 0)
-		return DH_KEYPAIR_EMPTY;
+		return AKD_KEYPAIR_EMPTY;
 
 	idx = 0;
 	if (kp.num == 0) {
-		num = dh_get_number_of_elements(filename);
+		num = akd_get_number_of_elements(filename);
 		if (num <= 0)
-			return DH_KEYPAIR_EMPTY;
+			return AKD_KEYPAIR_EMPTY;
 
-		ret.common = (tDHCommon *)malloc( num * sizeof(tDHCommon) );
+		ret.common = (tAKDCommon *)malloc( num * sizeof(tAKDCommon) );
 		ret.vPrivate = (uint64_t *)malloc( num * sizeof(uint64_t) );
 		ret.vPublic = (uint64_t *)malloc( num * sizeof(uint64_t) );
-		memset(ret.common, 0, num * sizeof(tDHCommon) );
+		memset(ret.common, 0, num * sizeof(tAKDCommon) );
 		memset(ret.vPrivate, 0, num * sizeof(uint64_t) );
 		memset(ret.vPublic, 0, num * sizeof(uint64_t) );
 		ret.num = num;
@@ -459,7 +459,7 @@ tDHKeyPair dh_read_file(char *filename, tDHKeyPair kp)
 
 	fp = fopen(filename, "r");
 	if (fp == NULL)
-		return DH_KEYPAIR_EMPTY;
+		return AKD_KEYPAIR_EMPTY;
 	while (!feof(fp)) {
 		memset(buf, 0, sizeof(buf));
 		fgets(buf, sizeof(buf), fp);
@@ -515,7 +515,7 @@ tDHKeyPair dh_read_file(char *filename, tDHKeyPair kp)
 	return ret;
 }
 
-void dh_keypair_dump(tDHKeyPair kp)
+void akd_keypair_dump(tAKDKeyPair kp)
 {
 	int i;
 
@@ -532,41 +532,41 @@ void dh_keypair_dump(tDHKeyPair kp)
 	}
 }
 
-tDHData dh_process_data(tDHParams dh_params)
+tAKDData akd_process_data(tAKDParams akd_params)
 {
-	tDHData ret = DH_DATA_EMPTY;
+	tAKDData ret = AKD_DATA_EMPTY;
 
-	if (dh_params.step == 1) {
-		tDHKeyPair kp, kpNew;
+	if (akd_params.step == 1) {
+		tAKDKeyPair kp, kpNew;
 		char tmp[4096] = { 0 };
 		char tmpPrivate[4096] = { 0 };
 		char tmpPublic [4096] = { 0 };
 
-		if (dh_params.type == MINCRYPT_FLAG_DHVAL_SENDER) {
-			kp = dh_generate_keypair(dh_params.count, NULL);
-			snprintf(tmp, sizeof(tmpPrivate), "%s.common", dh_params.filename);
-			dh_write_file(tmp, kp, MINCRYPT_FLAG_DHKEY_COMMON);
-			snprintf(tmpPrivate, sizeof(tmpPrivate), "%s.privateS", dh_params.filename);
-			snprintf(tmpPublic,  sizeof(tmpPublic), "%s.publicS" , dh_params.filename);
+		if (akd_params.type == MINCRYPT_FLAG_DHVAL_SENDER) {
+			kp = akd_generate_keypair(akd_params.count, NULL);
+			snprintf(tmp, sizeof(tmpPrivate), "%s.common", akd_params.filename);
+			akd_write_file(tmp, kp, MINCRYPT_FLAG_DHKEY_COMMON);
+			snprintf(tmpPrivate, sizeof(tmpPrivate), "%s.privateS", akd_params.filename);
+			snprintf(tmpPublic,  sizeof(tmpPublic), "%s.publicS" , akd_params.filename);
 		}
 		else {
-			snprintf(tmp, sizeof(tmpPrivate), "%s.common", dh_params.filename);
+			snprintf(tmp, sizeof(tmpPrivate), "%s.common", akd_params.filename);
 			if (access(tmp, R_OK) != 0)
 				return ret;
-			kp = dh_read_file(tmp, DH_KEYPAIR_EMPTY);
-			kpNew = dh_generate_keypair(kp.num, kp.common);
-			dh_keypair_free(kp);
+			kp = akd_read_file(tmp, AKD_KEYPAIR_EMPTY);
+			kpNew = akd_generate_keypair(kp.num, kp.common);
+			akd_keypair_free(kp);
 			kp = kpNew;
 
 			ret.bfilename_common = strdup(tmp);
 			ret.bfilename_common_size = get_file_size(ret.bfilename_common);
 
-			snprintf(tmpPrivate, sizeof(tmpPrivate), "%s.privateR", dh_params.filename);
-			snprintf(tmpPublic,  sizeof(tmpPublic),  "%s.publicR" , dh_params.filename);
+			snprintf(tmpPrivate, sizeof(tmpPrivate), "%s.privateR", akd_params.filename);
+			snprintf(tmpPublic,  sizeof(tmpPublic),  "%s.publicR" , akd_params.filename);
 		}
-		dh_write_file(tmpPrivate, kp, MINCRYPT_FLAG_DHKEY_PRIVATE);
-		dh_write_file(tmpPublic, kp, MINCRYPT_FLAG_DHKEY_PUBLIC);
-		dh_keypair_free(kp);
+		akd_write_file(tmpPrivate, kp, MINCRYPT_FLAG_DHKEY_PRIVATE);
+		akd_write_file(tmpPublic, kp, MINCRYPT_FLAG_DHKEY_PUBLIC);
+		akd_keypair_free(kp);
 
 		ret.bfilename_private = NULL;
 		ret.bfilename_private_size = 0;
@@ -579,64 +579,64 @@ tDHData dh_process_data(tDHParams dh_params)
 		ret.afilename_private_size = get_file_size(ret.afilename_private);
 		ret.afilename_public_size = get_file_size(ret.afilename_public);
 		ret.step = 1;
-		ret.direction = dh_params.type;
+		ret.direction = akd_params.type;
 	}
 	else
-	if (dh_params.step == 2) {
+	if (akd_params.step == 2) {
 		char tmp[4096] = { 0 };
-		tDHKeyPair kp;
+		tAKDKeyPair kp;
 
 		free(ret.bfilename_common); ret.bfilename_common = NULL; ret.bfilename_common_size = 0;
 		free(ret.bfilename_private); ret.bfilename_private = NULL; ret.bfilename_private_size = 0;
 		free(ret.bfilename_public); ret.bfilename_public = NULL; ret.bfilename_public_size = 0;
 
-		snprintf(tmp, sizeof(tmp), "%s.common", dh_params.filename);
+		snprintf(tmp, sizeof(tmp), "%s.common", akd_params.filename);
 		ret.bfilename_common = strdup(tmp);
 		ret.bfilename_common_size = get_file_size(tmp);
-		kp = dh_read_file(tmp, DH_KEYPAIR_EMPTY);
-		snprintf(tmp, sizeof(tmp), "%s.public%c", dh_params.filename,
-			(dh_params.type == MINCRYPT_FLAG_DHVAL_SENDER) ? 'R' : 'S');
+		kp = akd_read_file(tmp, AKD_KEYPAIR_EMPTY);
+		snprintf(tmp, sizeof(tmp), "%s.public%c", akd_params.filename,
+			(akd_params.type == MINCRYPT_FLAG_DHVAL_SENDER) ? 'R' : 'S');
 		ret.bfilename_public = strdup(tmp);
 		ret.bfilename_public_size = get_file_size(tmp);
-		kp = dh_read_file(tmp, kp);
-		snprintf(tmp, sizeof(tmp), "%s.private%c", dh_params.filename,
-			(dh_params.type == MINCRYPT_FLAG_DHVAL_SENDER) ? 'S' : 'R');
+		kp = akd_read_file(tmp, kp);
+		snprintf(tmp, sizeof(tmp), "%s.private%c", akd_params.filename,
+			(akd_params.type == MINCRYPT_FLAG_DHVAL_SENDER) ? 'S' : 'R');
 		ret.bfilename_private = strdup(tmp);
 		ret.bfilename_private_size = get_file_size(tmp);
-		kp = dh_read_file(tmp, kp);
+		kp = akd_read_file(tmp, kp);
 
-		dh_write_file(dh_params.filename, kp, MINCRYPT_FLAG_DHKEY_PRIVATE);
-		snprintf(tmp, sizeof(tmp), "%s.pub", dh_params.filename);
-		dh_write_file(tmp, kp, MINCRYPT_FLAG_DHKEY_COMMON_P | MINCRYPT_FLAG_DHKEY_PUBLIC);
-		dh_keypair_free(kp);
+		akd_write_file(akd_params.filename, kp, MINCRYPT_FLAG_DHKEY_PRIVATE);
+		snprintf(tmp, sizeof(tmp), "%s.pub", akd_params.filename);
+		akd_write_file(tmp, kp, MINCRYPT_FLAG_DHKEY_COMMON_P | MINCRYPT_FLAG_DHKEY_PUBLIC);
+		akd_keypair_free(kp);
 
 		free(ret.afilename_common); ret.afilename_common = NULL; ret.afilename_common_size = 0;
-		ret.afilename_private = strdup(dh_params.filename);
-		ret.afilename_private_size = get_file_size(dh_params.filename);
+		ret.afilename_private = strdup(akd_params.filename);
+		ret.afilename_private_size = get_file_size(akd_params.filename);
 		ret.afilename_public  = strdup(tmp);
 		ret.afilename_public_size = get_file_size(tmp);
 		ret.step = 2;
-		ret.direction = dh_params.type;
+		ret.direction = akd_params.type;
 	}
 	else
-	if (dh_params.step == 3) {
+	if ((akd_params.step == 3) || (akd_params.step == 4)) {
 		int i;
 		char tmp[4096] = { 0 };
 
-		tDHKeyPair kp;
+		tAKDKeyPair kp;
 
-		kp = dh_read_file(dh_params.filename, DH_KEYPAIR_EMPTY);
-		snprintf(tmp, sizeof(tmp), "%s.pub", dh_params.filename);
-		kp = dh_read_file(tmp, kp);
+		kp = akd_read_file(akd_params.filename, AKD_KEYPAIR_EMPTY);
+		snprintf(tmp, sizeof(tmp), "%s.pub", akd_params.filename);
+		kp = akd_read_file(tmp, kp);
 
 		free(ret.bfilename_common); ret.bfilename_common = NULL; ret.bfilename_common_size = 0;
 		free(ret.bfilename_private); ret.bfilename_private = NULL; ret.bfilename_private_size = 0;
 		free(ret.bfilename_public); ret.bfilename_public = NULL; ret.bfilename_public_size = 0;
 
-		ret.bfilename_private = strdup(dh_params.filename);
+		ret.bfilename_private = strdup(akd_params.filename);
 		ret.bfilename_public  = strdup(tmp);
 
-		ret.bfilename_private_size = get_file_size(dh_params.filename);
+		ret.bfilename_private_size = get_file_size(akd_params.filename);
 		ret.bfilename_public_size = get_file_size(tmp);
 
 		DPRINTF("Dumping %d values:\n", kp.num);
@@ -654,10 +654,13 @@ tDHData dh_process_data(tDHParams dh_params)
 		free(ret.afilename_common); ret.afilename_common = NULL; ret.afilename_common_size = 0;
 		free(ret.afilename_private); ret.afilename_private = NULL; ret.afilename_private_size = 0;
 		free(ret.afilename_public); ret.afilename_public = NULL; ret.afilename_public_size = 0;
-		ret.step = 3;
-		ret.direction = dh_params.type;
+		ret.step = akd_params.step;
+		ret.direction = akd_params.type;
 
-		dh_keypair_free(kp);
+		if (ret.step == 4)
+			akd_process_data_dump_keys(ret);
+
+		akd_keypair_free(kp);
 	}
 
 	if (ret.step > 0)
@@ -666,7 +669,7 @@ tDHData dh_process_data(tDHParams dh_params)
 	return ret;
 }
 
-void dh_process_data_dump(tDHData data)
+void akd_process_data_dump(tAKDData data)
 {
 	DPRINTF("Dumping data:\n");
 	DPRINTF("\tStep: %d/%s\n", data.step, (data.direction == MINCRYPT_FLAG_DHVAL_RECEIVER) ? "Receiver" :
@@ -688,7 +691,19 @@ void dh_process_data_dump(tDHData data)
 				data.afilename_public_size );
 }
 
-void dh_process_data_free(tDHData data)
+void akd_process_data_dump_keys(tAKDData data)
+{
+	int i;
+
+	if (data.num == 0)
+		return;
+
+	printf("Dumping keys:\n");
+	for (i = 0; i < data.num; i++)
+		printf("%8d) 0x%"PRIx64"\n", i, data.vals[i]);
+}
+
+void akd_process_data_free(tAKDData data)
 {
 	free(data.afilename_common);
 	free(data.afilename_private);
@@ -699,7 +714,7 @@ void dh_process_data_free(tDHData data)
 	free(data.vals);
 }
 
-void dh_keypair_free(tDHKeyPair kp)
+void akd_keypair_free(tAKDKeyPair kp)
 {
 	if (kp.num == 0)
 		return;

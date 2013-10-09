@@ -18,30 +18,37 @@ bail()
 	exit 1
 }
 
-dd if=/dev/urandom of=test bs=1M count=$SIZEMB
+if [ -z "$1" ]; then
+	fn="$(mktemp)"
+	dd if=/dev/urandom of=$fn bs=1M count=$SIZEMB
+	new=1
+else
+	fn="$1"
+	new=0
+fi
 
-../src/mincrypt --input-file=test --output-file=test.enc --salt=$SALT1 --password=$PASSWORD1
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT1 --password=$PASSWORD1 --decrypt
+../src/mincrypt --input-file=$fn --output-file=$fn.enc --salt=$SALT1 --password=$PASSWORD1
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT1 --password=$PASSWORD1 --decrypt
 if [ "x$?" != "x0" ]; then
 	bail "Test for decryption with valid salt and valid password failed"
 fi
 
-diff -up test test.dec >/dev/null
+diff -up $fn $fn.dec >/dev/null
 if [ "x$?" != "x0" ]; then
 	bail "Check for decryption with valid salt and valid password failed"
 fi
 
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT1 --password=$PASSWORD2 --decrypt
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT1 --password=$PASSWORD2 --decrypt
 if [ "x$?" == "x0" ]; then
 	bail "Test for decryption with valid salt and invalid password failed"
 fi
 
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT2 --password=$PASSWORD1 --decrypt
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT2 --password=$PASSWORD1 --decrypt
 if [ "x$?" == "x0" ]; then
 	bail "Test for decryption with invalid salt and valid password failed"
 fi
 
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT2 --password=$PASSWORD2 --decrypt
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT2 --password=$PASSWORD2 --decrypt
 if [ "x$?" == "x0" ]; then
 	bail "Test for decryption with invalid salt and invalid password failed"
 fi
@@ -57,52 +64,57 @@ else
 	echo "Key generation has been skipped"
 fi
 
-../src/mincrypt --input-file=test --output-file=test.enc --salt=$SALT1 --password=$PASSWORD1 --key-file=$KEYFILE_PREFIX_1.pub
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT1 --password=$PASSWORD1 --decrypt --key-file=$KEYFILE_PREFIX_1.key
+../src/mincrypt --input-file=$fn --output-file=$fn.enc --salt=$SALT1 --password=$PASSWORD1 --key-file=$KEYFILE_PREFIX_1.pub
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT1 --password=$PASSWORD1 --decrypt --key-file=$KEYFILE_PREFIX_1.key
 if [ "x$?" != "x0" ]; then
 	bail "Test for decryption with valid salt, valid password and valid key failed"
 fi
 
-diff -up test test.dec >/dev/null
+diff -up $fn $fn.dec >/dev/null
 if [ "x$?" != "x0" ]; then
 	bail "Check for decryption with valid salt and valid password failed"
 fi
 
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT2 --password=$PASSWORD1 --decrypt --key-file=$KEYFILE_PREFIX_1.key
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT2 --password=$PASSWORD1 --decrypt --key-file=$KEYFILE_PREFIX_1.key
 if [ "x$?" == "x0" ]; then
 	bail "Test for decryption with invalid salt, valid password and valid key failed"
 fi
 
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT1 --password=$PASSWORD2 --decrypt --key-file=$KEYFILE_PREFIX_1.key
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT1 --password=$PASSWORD2 --decrypt --key-file=$KEYFILE_PREFIX_1.key
 if [ "x$?" == "x0" ]; then
 	bail "Test for decryption with valid salt, invalid password and valid key failed"
 fi
 
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT2 --password=$PASSWORD2 --decrypt --key-file=$KEYFILE_PREFIX_1.key
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT2 --password=$PASSWORD2 --decrypt --key-file=$KEYFILE_PREFIX_1.key
 if [ "x$?" == "x0" ]; then
 	bail "Test for decryption with invalid salt, invalid password and valid key failed"
 fi
 
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT1 --password=$PASSWORD1 --decrypt --key-file=$KEYFILE_PREFIX_1X.key
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT1 --password=$PASSWORD1 --decrypt --key-file=$KEYFILE_PREFIX_1X.key
 if [ "x$?" == "x0" ]; then
 	bail "Test for decryption with valid salt, valid password and invalid key failed"
 fi
 
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT1 --password=$PASSWORD2 --decrypt --key-file=$KEYFILE_PREFIX_1X.key
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT1 --password=$PASSWORD2 --decrypt --key-file=$KEYFILE_PREFIX_1X.key
 if [ "x$?" == "x0" ]; then
 	bail "Test for decryption with valid salt, invalid password and invalid key failed"
 fi
 
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT2 --password=$PASSWORD2 --decrypt --key-file=$KEYFILE_PREFIX_1X.key
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT2 --password=$PASSWORD2 --decrypt --key-file=$KEYFILE_PREFIX_1X.key
 if [ "x$?" == "x0" ]; then
 	bail "Test for decryption with invalid salt, invalid password and invalid key failed"
 fi
 
-../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT1 --password=$PASSWORD1 --decrypt --key-file=$KEYFILE_PREFIX_2.key
+../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT1 --password=$PASSWORD1 --decrypt --key-file=$KEYFILE_PREFIX_2.key
 if [ "x$?" == "x0" ]; then
 	bail "Test for decryption with valid salt, valid password and invalid key failed"
 fi
 
 echo "All asymmetric tests passed successfully"
-rm -f $KEYFILE_PREFIX_1.pub $KEYFILE_PREFIX_2.pub $KEYFILE_PREFIX_1X.pub $KEYFILE_PREFIX_1.key $KEYFILE_PREFIX_2.key $KEYFILE_PREFIX_1X.key test test.enc test.dec
+rm -f $KEYFILE_PREFIX_1.pub $KEYFILE_PREFIX_2.pub $KEYFILE_PREFIX_1X.pub $KEYFILE_PREFIX_1.key $KEYFILE_PREFIX_2.key $KEYFILE_PREFIX_1X.key $fn.enc $fn.dec
+
+if [ $new -eq 1 ]; then
+	rm -f $fn
+fi
+
 exit 0

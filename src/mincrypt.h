@@ -176,36 +176,36 @@ char *mincrypt_encrypt_minimal(char *input, unsigned char *key, unsigned char *s
 char *mincrypt_decrypt_minimal(char *input, unsigned char *key, unsigned char *salt);
 
 /* Diffie-Hellman related stuff */
-typedef struct tDHCommon {
+typedef struct tAKDCommon {
 	uint64_t p;
 	uint64_t g;
-} tDHCommon;
+} tAKDCommon;
 
 typedef struct tRndValues {
 	int num;
 	uint64_t *vals;
 } tRndValues;
 
-typedef struct tDHKeyPair {
+typedef struct tAKDKeyPair {
 	int num;
 	uint64_t *vPublic;
 	uint64_t *vPrivate;
-	tDHCommon *common;
-} tDHKeyPair;
+	tAKDCommon *common;
+} tAKDKeyPair;
 
 typedef struct tTokenizerU64 {
 	int numVals;
 	uint64_t *vals;
 } tTokenizerU64;
 
-typedef struct tDHParams {
+typedef struct tAKDParams {
 	int type;
 	int step;
 	int count;
 	char *filename;
-} tDHParams;
+} tAKDParams;
 
-typedef struct tDHData {
+typedef struct tAKDData {
 	int step;
 	int direction;
 	int num;
@@ -226,31 +226,32 @@ typedef struct tDHData {
 	unsigned long afilename_private_size;
 	char *afilename_public;
 	unsigned long afilename_public_size;
-} tDHData;
+} tAKDData;
 
-tDHKeyPair DH_KEYPAIR_EMPTY;
-tDHParams  DH_PARAMS_EMPTY;
-tDHData    DH_DATA_EMPTY;
+tAKDKeyPair AKD_KEYPAIR_EMPTY;
+tAKDParams  AKD_PARAMS_EMPTY;
+tAKDData    AKD_DATA_EMPTY;
 
 void mincrypt_init(void);
-void dh_mincrypt_init(void);
-tDHParams dh_parse_value(char *val);
-tDHCommon dh_generate_pg_values(int val);
+void akd_mincrypt_init(void);
+tAKDParams akd_parse_value(char *val);
+tAKDCommon akd_generate_pg_values(int val);
 tRndValues generate_random_values(int num, uint64_t max);
-tDHKeyPair dh_generate_keypair(int num, tDHCommon *common);
-int dh_write_shared(int fd, tDHKeyPair kp, int flags);
-int dh_write_file(char *filename, tDHKeyPair kp, int flags);
-int dh_get_number_of_elements(char *filename);
-tDHKeyPair dh_read_file(char *filename, tDHKeyPair kp);
-void dh_keypair_dump(tDHKeyPair kp);
+tAKDKeyPair akd_generate_keypair(int num, tAKDCommon *common);
+int akd_write_shared(int fd, tAKDKeyPair kp, int flags);
+int akd_write_file(char *filename, tAKDKeyPair kp, int flags);
+int akd_get_number_of_elements(char *filename);
+tAKDKeyPair akd_read_file(char *filename, tAKDKeyPair kp);
+void akd_keypair_dump(tAKDKeyPair kp);
 tTokenizer tokenize_by(char *string, char *by);
-int dh_get_number_of_elements(char *filename);
-void dh_keypair_free(tDHKeyPair kp);
-void dh_process_data_dump(tDHData data);
-void dh_process_data_free(tDHData data);
-tDHData dh_process_data(tDHParams dh_params);
+int akd_get_number_of_elements(char *filename);
+void akd_keypair_free(tAKDKeyPair kp);
+void akd_process_data_dump(tAKDData data);
+void akd_process_data_free(tAKDData data);
+tAKDData akd_process_data(tAKDParams akd_params);
 unsigned long get_file_size(char *fn);
 unsigned char *uint64_to_binary(uint64_t n, int strip);
 unsigned char *uint64_to_bytes(uint64_t n, int len);
+void akd_process_data_dump_keys(tAKDData data);
 
 #endif

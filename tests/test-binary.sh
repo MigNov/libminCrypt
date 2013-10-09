@@ -11,14 +11,21 @@ BADPWD='tesu'
 total_good=0
 total_bad=0
 
-dd if=/dev/urandom of=test bs=1M count=$SIZEMB
+if [ -z "$1" ]; then
+	fn="$(mktemp)"
+	dd if=/dev/urandom of=$fn bs=1M count=$SIZEMB
+	new=1
+else
+	fn="$1"
+	new=0
+fi
 
 while [ $iter -lt $maxiter ]; do
   [ `id -u` == 0 ] && echo 3 > /proc/sys/vm/drop_caches
   T1=`date +%s`
-  ../src/mincrypt --input-file=test --output-file=test.enc --salt=$SALT --password=$PASSWORD
+  ../src/mincrypt --input-file=$fn --output-file=$fn.enc --salt=$SALT --password=$PASSWORD
   T2=`date +%s`
-  ../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT --password=$PASSWORD --decrypt --simple-mode
+  ../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT --password=$PASSWORD --decrypt --simple-mode
   T3=`date +%s`
   let X1=$T2-$T1
   let X2=$T3-$T1
@@ -31,7 +38,7 @@ done
 while [ $iter2 -lt $maxiter ]; do
   [ `id -u` == 0 ] && echo 3 > /proc/sys/vm/drop_caches
   T1=`date +%s`
-  ../src/mincrypt --input-file=test.enc --output-file=test.dec --salt=$SALT --password=$BADPWD --decrypt
+  ../src/mincrypt --input-file=$fn.enc --output-file=$fn.dec --salt=$SALT --password=$BADPWD --decrypt
   T2=`date +%s`
   let X1=$T2-$T1
   let iter2=$iter2+1
@@ -39,7 +46,11 @@ while [ $iter2 -lt $maxiter ]; do
   let total_bad=$total_bad+$X1+$X2
 done
 
-rm -f test test.enc test.dec
+rm -f $fn.enc $fn.dec
+
+if [ $new -eq 1 ]; then
+	rm -f $fn
+fi
 
 let total=$total_bad+$total_good
 
