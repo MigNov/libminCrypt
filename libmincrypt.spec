@@ -2,7 +2,7 @@ Name:		libmincrypt
 Version:	0.0.5
 Release:	1%{?dist}%{?extra_release}
 Summary:	Library form of minCrypt crypto-algorithm implementation
-Source:		http://www.migsoft.net/projects/mincrypt/libmincrypt-%{version}.tar.gz
+Source:		http://www.migsoft.net/projects/mincrypt/libmincrypt-%{version}.tar.xz
 
 Group:		Development/Libraries
 License:	LGPLv2+

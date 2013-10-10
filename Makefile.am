@@ -8,8 +8,8 @@ EXTRA_DIST = LICENSE
 
 rpm:   dist-xz
 	$(CP) $(PACKAGE_NAME)-$(VERSION).tar.xz $(SOURCEDIR)/$(PACKAGE_NAME)-$(VERSION).tar.xz
-	$(RPMBUILD) -bb $(PACKAGE_NAME).spec
+	rpmbuild -bb $(PACKAGE_NAME).spec
 
 srpm:  dist-xz
 	$(CP) $(PACKAGE_NAME)-$(VERSION).tar.xz $(SOURCEDIR)/$(PACKAGE_NAME)-$(VERSION).tar.xz
-	$(RPMBUILD) -bs $(PACKAGE_NAME).spec
+	rpmbuild -bs $(PACKAGE_NAME).spec
