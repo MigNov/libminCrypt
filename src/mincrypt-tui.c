@@ -146,6 +146,8 @@ int main(int argc, char *argv[])
 		printf("Receiver) and the <step> can be one of following values:\n\n");
 		printf("\t1\t- generate common, private and public key parts (in <file> and <file>.pub files)\n");
 		printf("\t2\t- generate private and public values using common information from file <file>\n");
+		printf("\t3\t- use files <file> and <file>.pub as the password & salt source\n");
+		printf("\t[4\t- output debug information of the symmetric key computer from <file> and <file>.pub]\n");
 		printf("\nBy common information/values the key value \"p\" and group value \"g\" are meant.\n");
 		return 1;
 	}

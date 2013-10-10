@@ -36,9 +36,6 @@ akd_test()
 	../src/mincrypt -a r:1:test-keyNW:$len > /dev/null
 	../src/mincrypt -a r:2:test-keyNW:$len > /dev/null
 
-	../src/mincrypt -a r:4:test-keyW1 > a1.log
-	../src/mincrypt -a r:4:test-keyNW > a2.log
-
 	res="PASS"
 	snamex=${sname// /_}
 	sfile="$file-$snamex"
