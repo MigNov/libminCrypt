@@ -22,29 +22,38 @@ akd_test()
 	# As we are emulating to be both sender and receiver (or both Alice and Bob, if you prefer :-))
 	# we have to rename the file to different names. File test-key is a private key and the file
 	# test-key.pub is the public key for corresponding to it
-	mv test-key test-key2
-	mv test-key.pub test-key2.pub
+	mv test-key test-keyW1
+	mv test-key.pub test-keyW1.pub
 
-	../src/mincrypt -h r:2:test-key:$len > /dev/null
+	../src/mincrypt -a r:2:test-key:$len > /dev/null
+
+	mv test-key test-keyW2
+	mv test-key.pub test-keyW2.pub
+
+	# We need to generate another key pair - not compatible
+	cp test-key.common test-keyNW.common
+
+	../src/mincrypt -a r:1:test-keyNW:$len > /dev/null
+	../src/mincrypt -a r:2:test-keyNW:$len > /dev/null
+
+	../src/mincrypt -a r:4:test-keyW1 > a1.log
+	../src/mincrypt -a r:4:test-keyNW > a2.log
 
 	res="PASS"
-	# Better test is to put input and output files to do real encryption
-	# Also, the lines below work only when debug log is enabled which is not optimal
-	#../src/mincrypt -a s:3:test-key:$len > tmpA
-	#../src/mincrypt -a r:3:test-key2:$len > tmpB
-	#if ! diff -up tmpA tmpB; then
-	#	res="FAIL"
-	#fi
-	#rm -f tmpA tmpB
-
 	snamex=${sname// /_}
 	sfile="$file-$snamex"
-	../src/mincrypt -a s:3:test-key:$len --input-file $TEMP_DIR/$file --output-file=$TEMP_DIR/$sfile.enc > /dev/null
-	../src/mincrypt -a r:3:test-key2:$len --input-file $TEMP_DIR/$sfile.enc --output-file=$TEMP_DIR/$sfile.dec --decrypt > /dev/null
+	../src/mincrypt -a s:3:test-keyW1:$len --input-file $TEMP_DIR/$file --output-file=$TEMP_DIR/$sfile.enc > /dev/null
+	../src/mincrypt -a r:3:test-keyW2:$len --input-file $TEMP_DIR/$sfile.enc --output-file=$TEMP_DIR/$sfile.dec --decrypt > /dev/null
+	../src/mincrypt -a r:3:test-keyNW:$len --input-file $TEMP_DIR/$sfile.enc --output-file=$TEMP_DIR/$sfile.idec --decrypt > /dev/null 2> /dev/null
 
 	diff $TEMP_DIR/$file $TEMP_DIR/$sfile.dec > /dev/null
 	if [ $? -ne 0 ]; then
 		res="FAIL"
+	else
+		diff $TEMP_DIR/$file $TEMP_DIR/$sfile.idec > /dev/null 2> /dev/null
+		if [ $? -eq 0 ]; then
+			res="FAIL"
+		fi
 	fi
 
 	tmEnd=$(date +%s)
@@ -58,7 +67,7 @@ akd_test()
 		return 1
 	fi
 }
-tmStart="$(date +%s)"
+tmStart1="$(date +%s)"
 
 do_check()
 {
@@ -85,8 +94,6 @@ test_finish()
 	rm -rf $TEMP_DIR
 }
 
-test_prepare 10
-
 memfree="$(cat /proc/meminfo | grep MemFree: | awk '{split($0, a, ":"); split(a[2], b, "kB"); gsub(/[[:space:]]/, "", b[1]); print b[1] }')"
 testNr=0
 loadtest=0
@@ -97,29 +104,19 @@ fi
 TEMP_DIR="$(mktemp -d)"
 echo "Using temporary directory: $TEMP_DIR"
 
-test_prepare 10
+test_prepare 50
 
-do_check "dh_test 16" "16 B"
-do_check "dh_test 512" "512 B"
-do_check "dh_test 1024" "1 kiB"
-do_check "dh_test 2048" "2 kiB"
-do_check "dh_test 4096" "4 kiB"
-do_check "dh_test 8192" "8 kiB"
-do_check "dh_test 16384" "16 kiB"
-do_check "dh_test 32768" "32 kiB"
+do_check "akd_test 16" "16 B"
+do_check "akd_test 512" "512 B"
+do_check "akd_test 1024" "1 kiB"
+do_check "akd_test 2048" "2 kiB"
+do_check "akd_test 4096" "4 kiB"
+do_check "akd_test 8192" "8 kiB"
 
-# 262144 kB is 256 Megs as we need to have something free for the system not to run into OOM
-if [ $memfree -gt 262144 -a "$loadtest" == "1" ]; then
-	do_check "dh_test 65536" "64 kiB"
-	do_check "dh_test 131072" "128 kiB"
-	do_check "dh_test 262144" "256 kiB"
-	do_check "dh_test 524288" "512 kiB"
-fi
-
-tmEnd="$(date +%s)"
-let tm=$tmEnd-$tmStart
+tmEnd1="$(date +%s)"
+let tm1=$tmEnd1-$tmStart1
 
 echo "Cleaning up directory: $TEMP_DIR"
 test_finish
 
-echo "All tests ($testNr test(s)) passed in $tm second(s)"
+echo "All tests ($testNr test(s)) passed in $tm1 second(s)"

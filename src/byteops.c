@@ -47,13 +47,21 @@ tAKDKeyPair akd_generate_keypair(int num, tAKDCommon *common)
 	int i;
 	tAKDKeyPair ret;
 	tRndValues privateVals;
+	unsigned long seed = time( NULL );
+
+	unsigned long val = rand() * get_microtime();
+	DPRINTF("%s: Random value is %ld\n", __FUNCTION__, val);
 
 	if (common != NULL)
-		srand( time(NULL) * rand() * num );
+		seed = time(NULL) * rand() * num * val;
 	else
-		srand( time(NULL) * rand() );
+		seed = time(NULL) * rand() * val;
+
+	DPRINTF("%s: Random seed value is %ld\n", __FUNCTION__, seed);
+	srand( seed );
 
 	ret.num = num;
+	DPRINTF("%s: Generating %d random values\n", __FUNCTION__, num);
 	privateVals = generate_random_values(num, 0);
 	ret.common = (tAKDCommon *)malloc( num * sizeof(tAKDCommon) );
 	ret.vPrivate = (uint64_t *)malloc( num * sizeof(uint64_t) );
@@ -227,6 +235,10 @@ char *dec_to_hex(int dec)
 
 uint64_t pow_and_mod(uint64_t n, uint64_t e, uint64_t mod)
 {
+	/* This prevents FPE exceptions */
+	if (mod == 0)
+		return 0;
+
         n %= mod;
         uint64_t result = 1;
         while (e > 0)

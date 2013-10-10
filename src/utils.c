@@ -292,7 +292,7 @@ int akd_write_file(char *filename, tAKDKeyPair kp, int flags)
 	if (flags & MINCRYPT_FLAG_DHKEY_COMMON_P) {
 		ret = akd_write_shared(fd, kp, flags);
 		if (ret != 0) {
-			DPRINTF("%s: Write shared failed with error %d\n", __FUNCTION__, ret);
+			DPRINTF("%s: Writing common values failed with error %d\n", __FUNCTION__, ret);
 			close(fd);
 			unlink(filename);
 			return ret;
@@ -305,7 +305,7 @@ int akd_write_file(char *filename, tAKDKeyPair kp, int flags)
 
 		ret = akd_write_public(fd, kp);
 		if (ret != 0) {
-			DPRINTF("%s: Write public failed with error %d\n", __FUNCTION__, ret);
+			DPRINTF("%s: Writing public values failed with error %d\n", __FUNCTION__, ret);
 			close(fd);
 			unlink(filename);
 			return ret;
@@ -318,7 +318,7 @@ int akd_write_file(char *filename, tAKDKeyPair kp, int flags)
 
 		ret = akd_write_private(fd, kp);
 		if (ret != 0) {
-			DPRINTF("%s: Write private failed with error %d\n", __FUNCTION__, ret);
+			DPRINTF("%s: Writing private values failed with error %d\n", __FUNCTION__, ret);
 			close(fd);
 			unlink(filename);
 			return ret;
@@ -532,6 +532,14 @@ void akd_keypair_dump(tAKDKeyPair kp)
 	}
 }
 
+unsigned long long get_microtime(void)
+{
+	struct timeval time;
+	gettimeofday(&time, NULL);
+
+	return ((unsigned long long)time.tv_sec * 1000000) + time.tv_usec;
+}
+
 tAKDData akd_process_data(tAKDParams akd_params)
 {
 	tAKDData ret = AKD_DATA_EMPTY;
@@ -566,6 +574,7 @@ tAKDData akd_process_data(tAKDParams akd_params)
 		}
 		akd_write_file(tmpPrivate, kp, MINCRYPT_FLAG_DHKEY_PRIVATE);
 		akd_write_file(tmpPublic, kp, MINCRYPT_FLAG_DHKEY_PUBLIC);
+		ret.num = kp.num;
 		akd_keypair_free(kp);
 
 		ret.bfilename_private = NULL;
@@ -608,6 +617,7 @@ tAKDData akd_process_data(tAKDParams akd_params)
 		akd_write_file(akd_params.filename, kp, MINCRYPT_FLAG_DHKEY_PRIVATE);
 		snprintf(tmp, sizeof(tmp), "%s.pub", akd_params.filename);
 		akd_write_file(tmp, kp, MINCRYPT_FLAG_DHKEY_COMMON_P | MINCRYPT_FLAG_DHKEY_PUBLIC);
+		ret.num = kp.num;
 		akd_keypair_free(kp);
 
 		free(ret.afilename_common); ret.afilename_common = NULL; ret.afilename_common_size = 0;
@@ -639,16 +649,20 @@ tAKDData akd_process_data(tAKDParams akd_params)
 		ret.bfilename_private_size = get_file_size(akd_params.filename);
 		ret.bfilename_public_size = get_file_size(tmp);
 
-		DPRINTF("Dumping %d values:\n", kp.num);
-		ret.vals = (uint64_t *)malloc( kp.num * sizeof(uint64_t) );
-		for (i = 0; i < kp.num; i++) {
-			uint64_t val = pow_and_mod(kp.vPublic[i], kp.vPrivate[i], kp.common[i].p);
-			unsigned char *tmp = uint64_to_binary(val, 32);
-			DPRINTF("\t%06d) 0x%08"PRIx64"  (%16"PRIi64", %s)\n", i, val, val, tmp);
-			free(tmp); tmp = NULL;
+		if (kp.num > 0) {
+			DPRINTF("Dumping %d values:\n", kp.num);
+			ret.vals = (uint64_t *)malloc( kp.num * sizeof(uint64_t) );
+			for (i = 0; i < kp.num; i++) {
+				uint64_t val = pow_and_mod(kp.vPublic[i], kp.vPrivate[i], kp.common[i].p);
+				unsigned char *tmp = uint64_to_binary(val, 32);
+				DPRINTF("\t%06d) 0x%08"PRIx64"  (%16"PRIi64", %s)\n", i, val, val, tmp);
+				free(tmp); tmp = NULL;
 
-			ret.vals[i] = val;
+				ret.vals[i] = val;
+			}
 		}
+		else
+			DPRINTF("WARN: akd_params.step = %d, kp.num = %d\n", akd_params.step, kp.num);
 
 		ret.num = kp.num;
 		free(ret.afilename_common); ret.afilename_common = NULL; ret.afilename_common_size = 0;

@@ -10,8 +10,6 @@
 
 #include "mincrypt.h"
 
-#define DEBUG_MINCRYPT
-
 #ifndef DISABLE_DEBUG
 #define DEBUG_MINCRYPT
 #endif

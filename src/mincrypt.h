@@ -62,6 +62,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
+#include <sys/time.h>
 
 typedef struct tTokenizer {
 	char **tokens;
@@ -253,5 +254,6 @@ unsigned long get_file_size(char *fn);
 unsigned char *uint64_to_binary(uint64_t n, int strip);
 unsigned char *uint64_to_bytes(uint64_t n, int len);
 void akd_process_data_dump_keys(tAKDData data);
+unsigned long long get_microtime(void);
 
 #endif
