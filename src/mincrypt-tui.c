@@ -136,19 +136,32 @@ int main(int argc, char *argv[])
 		printf("%s v%s\n", MINCRYPT_BANNER, PACKAGE_VERSION);
 		printf("\nSyntax: %s --input-file=infile --output-file=outfile [--decrypt] [--password=pwd] [--salt=salt]\n"
 			"\t\t[--vector-multiplier=number] [--type=base64|binary] [--simple-mode] [--key-size <keysize>\n"
-			"\t\t--key-file <keyfile-prefix>] [--dump-vectors <dump-file>] [--version] [--dh-step <value>]\n",
+			"\t\t--key-file <keyfile-prefix>] [--dump-vectors <dump-file>] [--version] [--akd-step <value>]\n",
 				argv[0]);
 
 		printf("\n");
-		printf("The --dh-step option is determining step for Diffie-Hellman like encryption system. The <value> should be\n");
+		printf("The --akd-step option is determining step for Diffie-Hellman like encryption system. The <value> should be\n");
 		printf("in the \"<type>:<step>:<file>[:count]\" format. Count is applicable only for step 1 and it  will specify how\n");
 		printf("many values to generate - i.e. the length of the key. The <type> value can be either s (or Sender) or r (or\n");
 		printf("Receiver) and the <step> can be one of following values:\n\n");
 		printf("\t1\t- generate common, private and public key parts (in <file> and <file>.pub files)\n");
 		printf("\t2\t- generate private and public values using common information from file <file>\n");
 		printf("\t3\t- use files <file> and <file>.pub as the password & salt source\n");
-		printf("\t[4\t- output debug information of the symmetric key computer from <file> and <file>.pub]\n");
-		printf("\nBy common information/values the key value \"p\" and group value \"g\" are meant.\n");
+		printf("\t4\t- output debug information of the symmetric key computed from <file> and <file>.pub\n");
+		printf("\nThe usual asymmetric scenario is:\n");
+		printf("\t1) Sender side (side A, like Alice) does step 1 and share the <file>.common and <file>.publicS to receiver side (B, Bob)\n");
+		printf("\t\t-a s:1:<file>:<length> - <length> is variable and it determines the key strength\n");
+		printf("\t2) Receiver side (Bob) does step 1 on the <file>.common file with specifying the receiver mode\n");
+		printf("\t\t-a r:1:<file>:<length> - this takes <file>.common file and creates <file>.privateR and <file>.publicR files\n");
+		printf("\t\tBob sends the <file>.publicR to Alice\n");
+		printf("\t3) Alice continues with step 2 (sharable public and private key generation) by using her private key and Bob's public key\n");
+		printf("\t\t-a s:2:<file>\n");
+		printf("\t4) Bob does the same like Alice using his private key and Alice's public key\n");
+		printf("\t\t-a r:2:<file>\n");
+		printf("\t5) Now both Alice and Bob have their private keys (in <file>) and second side's public keys <in <file>.pub) so they can\n");
+		printf("\t   use the keys as the password and salt source for the encryption/decryption\n");
+		printf("\t\t-a s:3:<file> --input-file /path/to/input --output-file /path/to/output [or -a r:3:<file> and input/output files]\n");
+		printf("\nBy common information/values the key value \"p\" and group value \"g\" are meant. The <file> and <file>.pub files don't have \"g\" value.\n");
 		return 1;
 	}
 
